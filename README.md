@@ -1,5 +1,9 @@
 # NASA Sky Hub - Home Assistant Integration
 
+<div align="center">
+  <img src="logo.png" alt="NASA Sky Hub Logo" width="200"/>
+</div>
+
 A comprehensive Home Assistant integration that brings together NASA public APIs, satellite tracking, and sky visibility calculations into actionable, glanceable awareness of what's happening above you.
 
 ## Features
@@ -12,6 +16,8 @@ A comprehensive Home Assistant integration that brings together NASA public APIs
 - **Beautiful Lovelace Dashboards** - Pre-built dashboards for space weather and sky overview
 
 ## Installation
+
+See [doc/installation.md](doc/installation.md) for detailed installation instructions.
 
 ### Method 1: HACS (Recommended - Easiest)
 
@@ -58,7 +64,6 @@ docker restart homeassistant
 3. Copy to your Home Assistant `custom_components` directory
 4. Restart Home Assistant
 
-See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
 ## Configuration
 
@@ -219,26 +224,25 @@ The integration includes intelligent rate limiting:
   - `pyephem>=4.1`
   - `skyfield>=1.42`
 
+## Documentation
+
+Detailed documentation is available in the `doc/` folder:
+
+- **[Installation Guide](doc/installation.md)** - Detailed installation instructions
+- **[Quick Start Guide](doc/quickstart.md)** - Get started quickly
+- **[Testing Guide](doc/testing.md)** - How to test the integration
+- **[Dashboard Setup](doc/dashboards.md)** - Setting up Lovelace dashboards
+- **[Troubleshooting](doc/troubleshooting.md)** - Common issues and solutions
+- **[Logs and Diagnostics](doc/logs-and-diagnostics.md)** - How to get logs for support
+
 ## Troubleshooting
 
-### Rate Limit Issues
+See [doc/troubleshooting.md](doc/troubleshooting.md) for detailed troubleshooting guide.
 
-If you see rate limit warnings:
-1. Check `sensor.nasa_api_rate_limit_remaining`
-2. Switch to a more conservative profile
-3. Disable unused modules
-4. Get your own API key instead of using DEMO_KEY
-
-### Satellite Tracking Not Working
-
-1. Ensure location is set correctly
-2. Check that TLE data is updating (check logs)
-3. Verify internet connectivity
-
-### Sky Calculations Incorrect
-
-1. Verify latitude/longitude are correct
-2. Check timezone settings in Home Assistant
+Quick fixes:
+- **Rate limit issues**: Check `sensor.nasa_api_rate_limit_remaining`, switch to conservative profile
+- **Entities not found**: Verify integration is configured, restart HA, wait 2-3 minutes
+- **No data**: Check modules are enabled, verify API key, check logs
 
 ## Development
 

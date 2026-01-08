@@ -2,5 +2,6 @@
   "name": "NASA Sky Hub",
   "domains": ["nasa_sky_hub"],
   "iot_class": "Cloud Polling",
-  "homeassistant": "2023.1.0"
+  "homeassistant": "2023.1.0",
+  "render_readme": true
 }

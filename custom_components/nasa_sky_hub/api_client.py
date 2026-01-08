@@ -50,30 +50,41 @@ class NASAApiClient:
         params: dict[str, Any] | None = None,
     ) -> dict[str, Any] | list[Any]:
         """Make an API request with rate limiting."""
+        _LOGGER.debug("Making API request: %s %s", method, endpoint)
         await self.rate_limiter.acquire()
 
         if params is None:
             params = {}
-        params["api_key"] = self.api_key
+        params["api_key"] = "***" if self.api_key != "DEMO_KEY" else "DEMO_KEY"
+        _LOGGER.debug("Request params: %s", {k: v for k, v in params.items() if k != "api_key"})
 
         session = await self._get_session()
         url = f"{NASA_API_BASE}{endpoint}"
 
         try:
+            _LOGGER.debug("Request URL: %s", url)
             async with session.request(method, url, params=params) as response:
+                _LOGGER.debug("Response status: %s", response.status)
                 # Record rate limit info
                 await self.rate_limiter.record_response(dict(response.headers))
+                _LOGGER.debug("Rate limit remaining: %s", self.rate_limiter.remaining)
 
                 if response.status == 429:
+                    _LOGGER.warning("Rate limit 429 received for %s", endpoint)
                     await self.rate_limiter.record_429()
                     raise NASAApiError("Rate limit exceeded")
 
                 response.raise_for_status()
-                return await response.json()
+                data = await response.json()
+                _LOGGER.debug("Response received, data type: %s", type(data).__name__)
+                return data
 
         except aiohttp.ClientError as err:
-            _LOGGER.error("NASA API request failed: %s", err)
+            _LOGGER.error("NASA API request failed for %s: %s", endpoint, err)
             raise NASAApiError(f"API request failed: {err}") from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error in API request to %s", endpoint)
+            raise NASAApiError(f"Unexpected error: {err}") from err
 
     async def get_apod(self, date: str | None = None) -> dict[str, Any]:
         """Get Astronomy Picture of the Day."""

@@ -16,6 +16,9 @@ from .rate_limiter import RateLimiter
 
 _LOGGER = logging.getLogger(__name__)
 
+# Enable detailed logging
+logging.getLogger(__name__).setLevel(logging.DEBUG)
+
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
@@ -33,13 +36,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up NASA Sky Hub from a config entry."""
+    _LOGGER.info("=" * 60)
+    _LOGGER.info("NASA Sky Hub: Starting setup for entry %s", entry.entry_id)
+    _LOGGER.info("=" * 60)
+    
     api_key = entry.data.get("api_key", "DEMO_KEY")
     location = entry.data.get("location", {})
     enabled_modules = entry.data.get("enabled_modules", [])
     profile = entry.data.get("profile", "balanced")
 
+    _LOGGER.info("Configuration:")
+    _LOGGER.info("  API Key: %s", "***" if api_key != "DEMO_KEY" else "DEMO_KEY")
+    _LOGGER.info("  Location: %s", location)
+    _LOGGER.info("  Enabled Modules: %s", enabled_modules)
+    _LOGGER.info("  Profile: %s", profile)
+
     # Initialize rate limiter
     rate_limiter = RateLimiter(profile=profile)
+    _LOGGER.debug("Rate limiter initialized with profile: %s", profile)
 
     # Initialize API client
     api_client = NASAApiClient(
@@ -47,6 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         rate_limiter=rate_limiter,
         hass=hass,
     )
+    _LOGGER.debug("API client initialized")
 
     # Store in hass.data
     hass.data[DOMAIN][entry.entry_id] = {
@@ -56,15 +71,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "enabled_modules": enabled_modules,
         "coordinators": {},  # Will be populated by platforms
     }
+    _LOGGER.debug("Data stored in hass.data[%s][%s]", DOMAIN, entry.entry_id)
 
     # Forward setup to platforms
+    _LOGGER.info("Setting up platforms: %s", PLATFORMS)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.info("Platforms setup complete")
 
     # Register services (only once per domain)
     if DOMAIN not in hass.data.get("_service_registered", {}):
+        _LOGGER.debug("Registering services")
         await _register_services(hass, entry)
         hass.data.setdefault("_service_registered", {})[DOMAIN] = True
+        _LOGGER.info("Services registered")
 
+    _LOGGER.info("NASA Sky Hub setup complete for entry %s", entry.entry_id)
+    _LOGGER.info("=" * 60)
     return True
 
 

@@ -26,6 +26,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+logging.getLogger(__name__).setLevel(logging.DEBUG)
 
 
 class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -36,17 +37,21 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize config flow."""
         self.data: dict[str, Any] = {}
+        _LOGGER.debug("Config flow initialized")
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        _LOGGER.info("Config flow: User step started")
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            _LOGGER.debug("User input received: %s", {k: "***" if k == CONF_API_KEY else v for k, v in user_input.items()})
             api_key = user_input.get(CONF_API_KEY, "").strip()
             if not api_key:
                 errors[CONF_API_KEY] = "api_key_required"
+                _LOGGER.warning("API key not provided")
             elif api_key == "DEMO_KEY":
                 # Show warning but allow
                 _LOGGER.warning(
@@ -56,6 +61,7 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if not errors:
                 self.data.update(user_input)
+                _LOGGER.info("API key step completed, proceeding to modules")
                 return await self.async_step_modules()
 
         return self.async_show_form(
@@ -79,13 +85,17 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle module selection step."""
+        _LOGGER.info("Config flow: Modules step started")
         if user_input is not None:
+            _LOGGER.debug("Modules input received: %s", user_input)
             self.data["enabled_modules"] = user_input.get("modules", [])
             self.data["profile"] = user_input.get("profile", PROFILE_BALANCED)
+            _LOGGER.info("Modules selected: %s, Profile: %s", self.data["enabled_modules"], self.data["profile"])
             return await self.async_step_location()
 
         # Default: enable all modules
         default_modules = ALL_MODULES
+        _LOGGER.debug("Default modules: %s", default_modules)
 
         return self.async_show_form(
             step_id="modules",
@@ -124,16 +134,21 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle location configuration step."""
+        _LOGGER.info("Config flow: Location step started")
         if user_input is not None:
+            _LOGGER.debug("Location input received: %s", user_input)
             self.data["location"] = {
                 CONF_LATITUDE: user_input.get(CONF_LATITUDE),
                 CONF_LONGITUDE: user_input.get(CONF_LONGITUDE),
             }
+            _LOGGER.info("Location set: %s", self.data["location"])
+            _LOGGER.info("Creating config entry with data: %s", {k: "***" if k == CONF_API_KEY else v for k, v in self.data.items()})
             return self.async_create_entry(title="NASA Sky Hub", data=self.data)
 
         # Try to get location from HA config
         ha_lat = self.hass.config.latitude
         ha_lon = self.hass.config.longitude
+        _LOGGER.debug("Using HA default location: %s, %s", ha_lat, ha_lon)
 
         return self.async_show_form(
             step_id="location",
@@ -166,12 +181,15 @@ class NASASkyHubOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
+        _LOGGER.debug("Options flow initialized for entry %s", config_entry.entry_id)
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
+        _LOGGER.info("Options flow: Init step")
         if user_input is not None:
+            _LOGGER.debug("Options input received: %s", user_input)
             return self.async_create_entry(title="", data=user_input)
 
         enabled_modules = self.config_entry.data.get("enabled_modules", [])

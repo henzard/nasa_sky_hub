@@ -115,15 +115,20 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors from config entry."""
+    _LOGGER.info("Setting up sensors for entry %s", entry.entry_id)
     data = hass.data[DOMAIN][entry.entry_id]
     api_client = data["api_client"]
     rate_limiter = data["rate_limiter"]
     location = data["location"]
     enabled_modules = data.get("enabled_modules", [])
 
+    _LOGGER.debug("Enabled modules: %s", enabled_modules)
+    _LOGGER.debug("Location: %s", location)
+
     entities: list[SensorEntity] = []
 
     # Rate limit sensors (always enabled)
+    _LOGGER.debug("Creating rate limit sensors")
     entities.extend(
         RateLimitSensor(rate_limiter, desc)
         for desc in RATE_LIMIT_SENSORS
@@ -131,32 +136,40 @@ async def async_setup_entry(
 
     # Space Weather sensors
     if MODULE_SPACE_WEATHER in enabled_modules:
+        _LOGGER.info("Setting up Space Weather sensors")
         coordinator = SpaceWeatherCoordinator(
             hass,
             api_client,
             update_interval=1800,
         )
         await coordinator.async_config_entry_first_refresh()
+        _LOGGER.debug("Space Weather coordinator refreshed, data: %s", coordinator.data is not None)
         entities.extend(
             SpaceWeatherSensor(coordinator, desc)
             for desc in SPACE_WEATHER_SENSORS
         )
+        # Store coordinator for diagnostics
+        data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
 
     # APOD sensors
     if MODULE_APOD in enabled_modules:
+        _LOGGER.info("Setting up APOD sensors")
         coordinator = APODCoordinator(
             hass,
             api_client,
             update_interval=86400,
         )
         await coordinator.async_config_entry_first_refresh()
+        _LOGGER.debug("APOD coordinator refreshed, data: %s", coordinator.data is not None)
         entities.extend(
             APODSensor(coordinator, desc)
             for desc in APOD_SENSORS
         )
+        data["coordinators"][MODULE_APOD] = coordinator
 
     # Satellite sensors
     if MODULE_SATELLITES in enabled_modules:
+        _LOGGER.info("Setting up Satellite sensors")
         coordinator = SatelliteCoordinator(
             hass,
             api_client,
@@ -164,24 +177,30 @@ async def async_setup_entry(
             update_interval=180,
         )
         await coordinator.async_config_entry_first_refresh()
+        _LOGGER.debug("Satellite coordinator refreshed, data: %s", coordinator.data is not None)
         entities.extend(
             SatelliteSensor(coordinator, desc)
             for desc in SATELLITE_SENSORS
         )
+        data["coordinators"][MODULE_SATELLITES] = coordinator
 
     # Sky sensors
     if MODULE_SKY in enabled_modules:
+        _LOGGER.info("Setting up Sky sensors")
         coordinator = SkyCoordinator(
             hass,
             location,
             update_interval=300,
         )
         await coordinator.async_config_entry_first_refresh()
+        _LOGGER.debug("Sky coordinator refreshed, data: %s", coordinator.data is not None)
         entities.extend(
             SkySensor(coordinator, desc)
             for desc in SKY_SENSORS
         )
+        data["coordinators"][MODULE_SKY] = coordinator
 
+    _LOGGER.info("Created %s sensor entities", len(entities))
     async_add_entities(entities)
 
 

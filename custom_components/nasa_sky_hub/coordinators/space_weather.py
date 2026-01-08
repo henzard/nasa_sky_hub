@@ -34,9 +34,11 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch space weather data."""
+        _LOGGER.info("Fetching space weather data")
         try:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=3)
+            _LOGGER.debug("Fetching data from %s to %s", start_date.date(), end_date.date())
 
             # Fetch flares, CMEs, and geomagnetic storms
             flares = await self.api_client.get_donki_flr(
@@ -77,7 +79,7 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
             elif recent_flares or active_storms:
                 severity = SEVERITY_ELEVATED
 
-            return {
+            result = {
                 "severity": severity,
                 "flares_24h": len(recent_flares),
                 "flares": recent_flares,
@@ -85,6 +87,12 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
                 "storms": active_storms,
                 "last_update": datetime.now().isoformat(),
             }
+            _LOGGER.info("Space weather data fetched: severity=%s, flares_24h=%s", severity, len(recent_flares))
+            return result
 
         except NASAApiError as err:
+            _LOGGER.error("NASA API error fetching space weather: %s", err)
             raise UpdateFailed(f"Error fetching space weather data: {err}") from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error fetching space weather data")
+            raise UpdateFailed(f"Unexpected error: {err}") from err

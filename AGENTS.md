@@ -68,6 +68,25 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 
 **Never leave files uncommitted.** If you create or modify files, commit and push them in the same session.
 
+## Testing Before Committing
+
+**CRITICAL: Test theories locally before implementing assumptions**
+
+- ✅ **Always test API patterns, library usage, and complex logic locally first**
+- ✅ Create temporary test scripts (e.g., `test_*.py`) to verify behavior
+- ✅ Run tests to confirm fixes work before committing
+- ✅ **ALWAYS clean up test files after verification** - delete `test_*.py` files before committing
+- ✅ **ALWAYS clean up downloaded files** - remove ephemeris files (`de421.bsp`), cache files, etc.
+- ❌ **Never assume** - if unsure about an API pattern or library usage, test it first
+- ❌ **Never commit test files** - they're temporary and should be deleted
+
+**Example workflow:**
+1. Create `test_theory.py` to verify approach
+2. Run `python test_theory.py` to confirm
+3. Apply fix to actual code
+4. Delete `test_theory.py` and any downloaded files
+5. Commit only the actual fix
+
 ## Code Style
 
 - Use type hints everywhere

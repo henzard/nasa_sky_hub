@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from math import acos, cos, degrees, radians, sin
+from math import asin, cos, degrees, radians, sin
 from typing import Any
 
 from skyfield.api import load, wgs84
@@ -128,8 +128,8 @@ class SkyCalculator:
         t = self.ts.from_datetime(time)
 
         for const in self.constellations:
-            # Convert RA/Dec to altitude
-            # Simplified calculation
+            # Convert RA/Dec to altitude using the correct formula
+            # Formula: sin(altitude) = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(HA)
             lst_hours = self.observer.lst_hours_at(t)
             ha = lst_hours - const["ra"]
             dec_rad = radians(const["dec"])
@@ -137,9 +137,17 @@ class SkyCalculator:
             ha_rad = radians(ha * 15)
 
             sin_alt = sin(dec_rad) * sin(lat_rad) + cos(dec_rad) * cos(lat_rad) * cos(ha_rad)
-            alt = degrees(acos(max(-1, min(1, sin_alt))))
+            # Clamp sin_alt to valid range [-1, 1] and use asin (not acos!)
+            sin_alt = max(-1, min(1, sin_alt))
+            alt = degrees(asin(sin_alt))
 
-            if alt > 10:  # Above horizon
+            # Check if constellation is visible:
+            # 1. Must be above horizon (alt > 10 degrees to avoid horizon haze)
+            # 2. Must be physically possible to see from this latitude
+            #    (max altitude = 90 - |latitude - declination|)
+            max_possible_alt = 90 - abs(self.latitude - const["dec"])
+            
+            if alt > 10 and max_possible_alt > 10:
                 visible.append(const["name"])
 
         return visible

@@ -79,10 +79,15 @@ Before committing:
 After pushing code:
 1. ✅ **Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
 2. ✅ **Push tag**: `git push origin v{VERSION}`
-3. ✅ Verify tag exists: `git tag -l` (should show `v{VERSION}`)
-4. ✅ Verify tag pushed: Check GitHub tags page
+3. ✅ **Create GitHub Release** (MANDATORY - HACS reads releases, not tags!):
+   - Go to GitHub repository → Releases → Draft a new release
+   - Select tag: `v{VERSION}`
+   - Title: `Version {VERSION}` or `v{VERSION}`
+   - Description: Brief changelog
+   - Click "Publish release"
+4. ✅ Verify release exists: Check GitHub Releases page
 
-**If you forget to tag, HACS will show commit hashes instead of version numbers!**
+**If you forget to create GitHub Release, HACS will show commit hashes instead of version numbers!**
 
 ## Files to Never Commit
 
@@ -108,29 +113,46 @@ git add .
 git commit -m "feat: add comprehensive logging to coordinators"
 # 5. Push immediately
 git push
-# 6. MANDATORY: Create git tag (HACS REQUIRES THIS)
+# 6. MANDATORY: Create git tag
 git tag v1.1.5 -m "Version 1.1.5: add comprehensive logging to coordinators"
-# 7. MANDATORY: Push tag (HACS REQUIRES THIS)
+# 7. MANDATORY: Push tag
 git push origin v1.1.5
+# 8. MANDATORY: Create GitHub Release (HACS REQUIRES THIS!)
+#    - Go to GitHub → Releases → Draft a new release
+#    - Select tag: v1.1.5
+#    - Title: "Version 1.1.5"
+#    - Description: "add comprehensive logging to coordinators"
+#    - Publish release
 ```
+
+**Note:** GitHub Releases must be created manually on GitHub website. Git tags alone are NOT enough!
 
 ## HACS Version Display - CRITICAL
 
-**HACS displays versions from git tags ONLY, NOT from manifest.json!**
+**HACS displays versions from GitHub Releases, NOT from git tags or manifest.json!**
 
-**If you skip tagging:**
+**If you skip creating GitHub Releases:**
 - ❌ HACS shows commit hashes (e.g., "4b79009", "ab5d6ba")
 - ❌ Users can't tell what version they have
 - ❌ Update notifications break
 - ❌ Version comparison fails
 
-**Tag requirements:**
-- Tag format: `v{VERSION}` (e.g., `v1.1.5` - must match manifest.json exactly)
-- Tag message: `"Version {VERSION}: {description}"`
-- Push tag: `git push origin v{VERSION}` (MANDATORY)
+**HACS Requirements (ALL must be done):**
+1. ✅ Update version in `manifest.json`
+2. ✅ Create git tag: `git tag v{VERSION}`
+3. ✅ Push tag: `git push origin v{VERSION}`
+4. ✅ **Create GitHub Release** using the tag (MANDATORY - this is what HACS reads!)
 
-**Every single version bump MUST include both:**
+**GitHub Release Steps:**
+1. Go to GitHub repository → "Releases" → "Draft a new release"
+2. Select tag: `v{VERSION}` (must match manifest.json version)
+3. Release title: `Version {VERSION}` or `v{VERSION}`
+4. Description: Brief changelog or description
+5. Click "Publish release"
+
+**Every single version bump MUST include:**
 1. Version update in `manifest.json`
 2. Git tag creation and push
+3. **GitHub Release creation** (this is what HACS actually uses!)
 
-**This is not optional - HACS breaks without tags!**
+**Without GitHub Releases, HACS will show commit hashes instead of versions!**

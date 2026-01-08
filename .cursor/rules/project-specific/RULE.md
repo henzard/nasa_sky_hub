@@ -75,14 +75,22 @@ Before committing:
 
 ## HACS Version Display - CRITICAL
 
-**HACS requires git tags to display versions correctly.**
+**HACS requires GitHub Releases to display versions correctly.**
 
-Without tags:
+Without GitHub Releases:
 - HACS shows commit hashes (e.g., "4b79009") instead of "v1.1.5"
 - Version comparison fails
 - Update notifications break
 
-**Every version bump MUST include git tag creation and push.**
+**Every version bump MUST include:**
+1. Git tag creation and push
+2. **GitHub Release creation** (HACS reads releases, not just tags!)
+
+**GitHub Release Steps:**
+- GitHub → Releases → Draft a new release
+- Select tag: `v{VERSION}`
+- Title: `Version {VERSION}`
+- Publish release
 
 ## Files to Never Create
 

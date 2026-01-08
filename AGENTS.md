@@ -31,19 +31,26 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 
 ## Critical: HACS Version Display
 
-**HACS shows versions from git tags, NOT manifest.json!**
+**HACS shows versions from GitHub Releases, NOT git tags or manifest.json!**
 
-**If you skip tagging:**
+**If you skip creating GitHub Releases:**
 - ❌ HACS displays commit hashes instead of versions
 - ❌ Users can't see version numbers
 - ❌ Update system breaks
 
 **Every version bump MUST include:**
-- Version in `manifest.json`
-- Git tag `v{VERSION}` 
-- Tag pushed to GitHub
+1. Version in `manifest.json`
+2. Git tag `v{VERSION}` created and pushed
+3. **GitHub Release created** (this is what HACS actually reads!)
 
-**Never skip tagging - it breaks HACS version display!**
+**GitHub Release Steps:**
+- Go to GitHub → Releases → Draft a new release
+- Select tag: `v{VERSION}`
+- Title: `Version {VERSION}`
+- Description: Brief changelog
+- Publish release
+
+**Never skip GitHub Release creation - it breaks HACS version display!**
 
 ## Critical: No Uncommitted Changes
 

@@ -1,0 +1,219 @@
+title: NASA Sky Hub Master Dashboard
+path: nasa-sky-hub
+icon: mdi:rocket-launch
+panel: false
+cards:
+  - type: horizontal-stack
+    cards:
+      # Space Weather Section (left column)
+      - type: vertical-stack
+        cards:
+          # Header Card
+          - type: markdown
+            content: |
+              ## ⚡ Space Weather Command
+              Real-time space weather monitoring
+
+          # Space Weather Overview Card
+          - type: entities
+            title: Current Status
+            entities:
+              - entity: sensor.nasa_sky_hub_space_weather_severity
+                name: Space Weather Severity
+                icon: mdi:weather-night
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_sky_hub_solar_flares_24h
+                name: Solar Flares (24h)
+                icon: mdi:solar-power
+                tap_action:
+                  action: more-info
+
+          # Active Alerts Stack (show if any alert is active)
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.nasa_sky_hub_solar_flare_active
+                state: "on"
+              - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
+                state: "on"
+              - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
+                state: "on"
+            condition: or
+            card:
+              type: vertical-stack
+              cards:
+                - type: markdown
+                  content: |
+                    ## ⚠️ Active Alerts
+
+                - type: entities
+                  entities:
+                    - entity: binary_sensor.nasa_sky_hub_solar_flare_active
+                      name: Solar Flare Active
+                      icon: mdi:solar-power
+                    - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
+                      name: Geomagnetic Storm Active
+                      icon: mdi:magnet
+                    - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
+                      name: Radiation Storm Active
+                      icon: mdi:radioactive
+
+          # Recent Flares List
+          - type: markdown
+            content: |
+              ### Recent Solar Flares
+              {% set flares = state_attr('sensor.nasa_sky_hub_space_weather_severity', 'flares') | default([]) %}
+              {% if flares %}
+                {% for flare in flares[:5] %}
+                  - **{{ flare.classType }}** - {{ flare.beginTime[:10] }}
+                    - Location: {{ flare.sourceLocation }}
+                    - Time: {{ flare.beginTime }}
+                {% endfor %}
+              {% else %}
+                No recent flares
+              {% endif %}
+
+          # Rate Limit Status
+          - type: entities
+            title: API Rate Limit
+            entities:
+              - entity: sensor.nasa_api_nasa_api_rate_limit_remaining
+                name: Remaining Requests
+                icon: mdi:api
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_api_nasa_api_status
+                name: API Status
+                icon: mdi:api
+                tap_action:
+                  action: more-info
+
+      # Sky Overview Section (middle column)
+      - type: vertical-stack
+        cards:
+          # Header
+          - type: markdown
+            content: |
+              ## 🌌 Night Sky Overview
+              What's above you right now
+
+          # Sky Conditions
+          - type: entities
+            title: Sky Conditions
+            entities:
+              - entity: binary_sensor.nasa_sky_hub_astronomical_night
+                name: Astronomical Night
+                icon: mdi:weather-night
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_sky_hub_sky_darkness_level
+                name: Sky Darkness Level
+                icon: mdi:brightness-3
+                tap_action:
+                  action: more-info
+              - entity: binary_sensor.nasa_sky_hub_good_stargazing_conditions
+                name: Good Stargazing Conditions
+                icon: mdi:star-circle
+                tap_action:
+                  action: more-info
+
+          # ISS Status
+          - type: conditional
+            conditions:
+              - entity: binary_sensor.nasa_sky_hub_iss_overhead
+                state: "on"
+            card:
+              type: entities
+              title: 🛰️ ISS Overhead Now!
+              entities:
+                - entity: binary_sensor.nasa_sky_hub_iss_overhead
+                  name: ISS Currently Overhead
+                  icon: mdi:satellite-variant
+                  tap_action:
+                    action: more-info
+
+          # Visible Constellations
+          - type: entities
+            title: Visible Constellations
+            entities:
+              - entity: sensor.nasa_sky_hub_visible_constellations
+                name: Constellations
+                icon: mdi:star
+
+          # Objects & Timing
+          - type: entities
+            title: Objects & Timing
+            entities:
+              - entity: sensor.nasa_sky_hub_brightest_object_overhead
+                name: Brightest Object
+                icon: mdi:star-circle
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_sky_hub_next_satellite_pass
+                name: Next Satellite Pass
+                icon: mdi:satellite
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_sky_hub_sidereal_time
+                name: Sidereal Time
+                icon: mdi:clock-outline
+                tap_action:
+                  action: more-info
+              - entity: sensor.nasa_sky_hub_satellites_overhead
+                name: Satellites Overhead
+                icon: mdi:satellite-variant
+                tap_action:
+                  action: more-info
+
+      # Earth Events Section (right column)
+      - type: vertical-stack
+        cards:
+          # Header
+          - type: markdown
+            content: |
+              ## 🌍 Earth & Space Events
+              Natural events and space discoveries
+
+          # APOD Showcase
+          - type: picture-elements
+            image: entity:camera.nasa_sky_hub_apod
+            elements:
+              - type: state-label
+                entity: sensor.nasa_sky_hub_apod_title
+                style:
+                  top: 10%
+                  left: 5%
+                  font-size: 1.2em
+                  font-weight: bold
+                  color: white
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8)
+              - type: state-label
+                entity: sensor.nasa_sky_hub_apod_date
+                style:
+                  top: 15%
+                  left: 5%
+                  font-size: 0.9em
+                  color: white
+                  text-shadow: 2px 2px 4px rgba(0,0,0,0.8)
+              - type: state-badge
+                entity: sensor.nasa_sky_hub_space_weather_severity
+                style:
+                  top: 10%
+                  right: 5%
+                  background-color: rgba(0,0,0,0.5)
+                  border-radius: 8px
+                  padding: 8px
+            tap_action:
+              action: more-info
+              entity: camera.nasa_sky_hub_apod
+
+          # Space Weather Badge on APOD
+          - type: entities
+            title: Current Space Weather
+            entities:
+              - entity: sensor.nasa_sky_hub_space_weather_severity
+                name: Space Weather Severity
+                icon: mdi:weather-lightning
+                tap_action:
+                  action: navigate
+                  navigation_path: /space-weather

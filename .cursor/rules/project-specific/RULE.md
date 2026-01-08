@@ -86,13 +86,12 @@ Without GitHub Releases:
 
 **Every version bump MUST include:**
 1. Git tag creation and push
-2. **GitHub Release creation** (HACS reads releases, not just tags!)
+2. **GitHub Release is AUTOMATED** - GitHub Actions workflow creates it automatically
 
-**GitHub Release Steps:**
-- GitHub → Releases → Draft a new release
-- Select tag: `v{VERSION}`
-- Title: `Version {VERSION}`
-- Publish release
+**GitHub Release Automation:**
+- The `.github/workflows/release.yml` workflow automatically creates releases when tags are pushed
+- Just push the tag: `git push origin v{VERSION}` - the release is created automatically
+- Release notes are generated from the tag message and commits
 
 ## Files to Never Create
 

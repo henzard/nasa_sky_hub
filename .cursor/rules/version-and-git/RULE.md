@@ -100,15 +100,16 @@ Before committing:
 After pushing code:
 1. ✅ **Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
 2. ✅ **Push tag**: `git push origin v{VERSION}`
-3. ✅ **Create GitHub Release** (MANDATORY - HACS reads releases, not tags!):
-   - Go to GitHub repository → Releases → Draft a new release
-   - Select tag: `v{VERSION}`
-   - Title: `Version {VERSION}` or `v{VERSION}`
-   - Description: Brief changelog
-   - Click "Publish release"
-4. ✅ Verify release exists: Check GitHub Releases page
+3. ✅ **GitHub Release is AUTOMATED** - GitHub Actions workflow (`.github/workflows/release.yml`) automatically creates the release when the tag is pushed
+4. ✅ Verify release exists: Check GitHub Releases page after workflow completes
 
-**If you forget to create GitHub Release, HACS will show commit hashes instead of version numbers!**
+**The workflow automatically:**
+- Creates a GitHub Release from the pushed tag
+- Uses the tag message as the release description
+- Generates release notes from commits
+- Sets the release title to "Version {VERSION}"
+
+**If the workflow fails, HACS will show commit hashes instead of version numbers!**
 
 ## Files to Never Commit
 
@@ -146,7 +147,7 @@ git push origin v1.1.5
 #    - Publish release
 ```
 
-**Note:** GitHub Releases must be created manually on GitHub website. Git tags alone are NOT enough!
+**Note:** GitHub Releases are automatically created by GitHub Actions when tags are pushed. The workflow (`.github/workflows/release.yml`) handles this automatically.
 
 ## HACS Version Display - CRITICAL
 
@@ -160,20 +161,19 @@ git push origin v1.1.5
 
 **HACS Requirements (ALL must be done):**
 1. ✅ Update version in `manifest.json`
-2. ✅ Create git tag: `git tag v{VERSION}`
+2. ✅ Create git tag: `git tag v{VERSION} -m "Version {VERSION}: description"`
 3. ✅ Push tag: `git push origin v{VERSION}`
-4. ✅ **Create GitHub Release** using the tag (MANDATORY - this is what HACS reads!)
+4. ✅ **GitHub Release is AUTOMATED** - GitHub Actions creates it automatically when tag is pushed
 
-**GitHub Release Steps:**
-1. Go to GitHub repository → "Releases" → "Draft a new release"
-2. Select tag: `v{VERSION}` (must match manifest.json version)
-3. Release title: `Version {VERSION}` or `v{VERSION}`
-4. Description: Brief changelog or description
-5. Click "Publish release"
+**GitHub Release Automation:**
+- The `.github/workflows/release.yml` workflow automatically creates releases when tags matching `v*` are pushed
+- Release title: `Version {VERSION}` (extracted from tag)
+- Release description: Uses tag message or generates from commits
+- No manual steps needed - just push the tag!
 
 **Every single version bump MUST include:**
 1. Version update in `manifest.json`
 2. Git tag creation and push
-3. **GitHub Release creation** (this is what HACS actually uses!)
+3. **GitHub Release is created automatically** by the workflow (this is what HACS reads!)
 
 **Without GitHub Releases, HACS will show commit hashes instead of versions!**

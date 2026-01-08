@@ -53,11 +53,9 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 3. **GitHub Release created** (this is what HACS actually reads!)
 
 **GitHub Release Steps:**
-- Go to GitHub → Releases → Draft a new release
-- Select tag: `v{VERSION}`
-- Title: `Version {VERSION}`
-- Description: Brief changelog
-- Publish release
+- ✅ **AUTOMATED**: GitHub Actions workflow (`.github/workflows/release.yml`) automatically creates releases when tags are pushed
+- ✅ Just push the tag: `git push origin v{VERSION}` - the release will be created automatically
+- ✅ Release notes are generated from the tag message
 
 **Never skip GitHub Release creation - it breaks HACS version display!**
 

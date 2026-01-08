@@ -1,0 +1,48 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: tag_version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "Tag: $TAG_NAME"
+          echo "Version: ${TAG_NAME#v}"
+
+      - name: Get tag message
+        id: tag_message
+        run: |
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ steps.tag_version.outputs.tag }})
+          if [ -z "$TAG_MESSAGE" ]; then
+            TAG_MESSAGE="Version ${{ steps.tag_version.outputs.version }}"
+          fi
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag }}
+          name: Version ${{ steps.tag_version.outputs.version }}
+          body: ${{ steps.tag_message.outputs.message }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

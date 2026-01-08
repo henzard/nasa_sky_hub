@@ -46,7 +46,8 @@ async def async_setup_entry(
             _LOGGER.warning("Failed to refresh APOD coordinator on setup: %s", err)
         # Don't fail setup, coordinator will retry later
 
-    async_add_entities([APODCamera(coordinator)])
+    _LOGGER.info("Created APOD camera entity")
+    async_add_entities([APODCamera(coordinator)], update_before_add=False)
 
 
 class APODCamera(CoordinatorEntity, Camera):

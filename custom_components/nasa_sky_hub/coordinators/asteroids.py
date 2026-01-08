@@ -73,10 +73,22 @@ class SentryCoordinator(DataUpdateCoordinator):
 
         except NASAApiError as err:
             _LOGGER.error("NASA API error fetching Sentry data: %s", err)
-            raise UpdateFailed(f"Error fetching Sentry data: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "count": 0,
+                "threats": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }
         except Exception as err:
             _LOGGER.exception("Unexpected error fetching Sentry data")
-            raise UpdateFailed(f"Unexpected error: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "count": 0,
+                "threats": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }
 
 
 class CADCoordinator(DataUpdateCoordinator):

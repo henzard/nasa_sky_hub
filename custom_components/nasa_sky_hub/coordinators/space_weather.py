@@ -93,7 +93,25 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
 
         except NASAApiError as err:
             _LOGGER.error("NASA API error fetching space weather: %s", err)
-            raise UpdateFailed(f"Error fetching space weather data: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "severity": SEVERITY_QUIET,
+                "flares_24h": 0,
+                "flares": [],
+                "cmes": [],
+                "storms": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }
         except Exception as err:
             _LOGGER.exception("Unexpected error fetching space weather data")
-            raise UpdateFailed(f"Unexpected error: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "severity": SEVERITY_QUIET,
+                "flares_24h": 0,
+                "flares": [],
+                "cmes": [],
+                "storms": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }

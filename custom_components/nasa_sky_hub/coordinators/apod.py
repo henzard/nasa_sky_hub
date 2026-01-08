@@ -34,6 +34,16 @@ class APODCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch APOD data."""
+        default_data = {
+            "title": "",
+            "date": "",
+            "explanation": "",
+            "url": "",
+            "hdurl": "",
+            "media_type": "image",
+            "last_update": datetime.now(timezone.utc).isoformat(),
+        }
+        
         try:
             data = await self.api_client.get_apod()
             return {
@@ -46,4 +56,12 @@ class APODCoordinator(DataUpdateCoordinator):
                 "last_update": datetime.now(timezone.utc).isoformat(),
             }
         except NASAApiError as err:
-            raise UpdateFailed(f"Error fetching APOD data: {err}") from err
+            _LOGGER.error("NASA API error fetching APOD: %s", err)
+            # Return default data instead of raising to allow retries
+            default_data["error"] = str(err)
+            return default_data
+        except Exception as err:
+            _LOGGER.exception("Unexpected error fetching APOD data")
+            # Return default data instead of raising to allow retries
+            default_data["error"] = str(err)
+            return default_data

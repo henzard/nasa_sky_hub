@@ -157,7 +157,14 @@ async def async_setup_entry(
         )
         data["coordinators"][MODULE_SKY] = coordinator
 
-    async_add_entities(entities)
+    _LOGGER.info("Created %s binary sensor entities", len(entities))
+    # Log entity details for diagnostics
+    for entity in entities:
+        unique_id = getattr(entity, '_attr_unique_id', 'unknown')
+        desc_key = getattr(entity.entity_description, 'key', 'unknown') if hasattr(entity, 'entity_description') else 'unknown'
+        coordinator_name = getattr(entity.coordinator, 'name', 'unknown') if hasattr(entity, 'coordinator') else 'unknown'
+        _LOGGER.debug("Binary sensor: unique_id=%s, key=%s, coordinator=%s", unique_id, desc_key, coordinator_name)
+    async_add_entities(entities, update_before_add=False)
 
 
 class BaseBinarySensor(CoordinatorEntity, BinarySensorEntity):

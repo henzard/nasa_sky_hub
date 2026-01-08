@@ -71,4 +71,14 @@ class SatelliteCoordinator(DataUpdateCoordinator):
             }
 
         except Exception as err:
-            raise UpdateFailed(f"Error fetching satellite data: {err}") from err
+            _LOGGER.error("Error fetching satellite data: %s", err, exc_info=True)
+            # Return default data instead of raising to allow retries
+            return {
+                "satellites_overhead": 0,
+                "satellites": [],
+                "iss_overhead": False,
+                "iss_data": None,
+                "next_pass": None,
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }

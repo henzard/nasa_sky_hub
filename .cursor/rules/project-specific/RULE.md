@@ -64,11 +64,25 @@ Before committing:
 
 **After making ANY changes:**
 1. ✅ Check status: `git status`
-2. ✅ Stage changes: `git add .`
-3. ✅ Commit immediately: `git commit -m "type: description"`
-4. ✅ Push immediately: `git push`
+2. ✅ Update version in `manifest.json` (if code changed)
+3. ✅ Stage changes: `git add .`
+4. ✅ Commit immediately: `git commit -m "type: description"`
+5. ✅ Push immediately: `git push`
+6. ✅ **MANDATORY: Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
+7. ✅ **MANDATORY: Push tag**: `git push origin v{VERSION}`
 
-**Never leave uncommitted changes.** All file modifications must be committed and pushed in the same session.
+**Never leave uncommitted changes.** All file modifications must be committed, pushed, AND tagged in the same session.
+
+## HACS Version Display - CRITICAL
+
+**HACS requires git tags to display versions correctly.**
+
+Without tags:
+- HACS shows commit hashes (e.g., "4b79009") instead of "v1.1.5"
+- Version comparison fails
+- Update notifications break
+
+**Every version bump MUST include git tag creation and push.**
 
 ## Files to Never Create
 

@@ -22,12 +22,28 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 ## When Making Changes
 
 1. Make code changes
-2. Update version in `manifest.json` (e.g., 1.1.2)
+2. Update version in `manifest.json` (e.g., 1.1.5)
 3. Test the change
 4. **ALWAYS commit immediately**: `git add . && git commit -m "feat: description"`
 5. **ALWAYS push immediately**: `git push`
-6. **ALWAYS create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
-7. **ALWAYS push tag**: `git push origin v{VERSION}` (HACS needs tags for version display)
+6. **MANDATORY: Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
+7. **MANDATORY: Push tag**: `git push origin v{VERSION}`
+
+## Critical: HACS Version Display
+
+**HACS shows versions from git tags, NOT manifest.json!**
+
+**If you skip tagging:**
+- ❌ HACS displays commit hashes instead of versions
+- ❌ Users can't see version numbers
+- ❌ Update system breaks
+
+**Every version bump MUST include:**
+- Version in `manifest.json`
+- Git tag `v{VERSION}` 
+- Tag pushed to GitHub
+
+**Never skip tagging - it breaks HACS version display!**
 
 ## Critical: No Uncommitted Changes
 

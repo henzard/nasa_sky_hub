@@ -6,32 +6,36 @@ cards:
   - type: vertical-stack
     cards:
       # Header
-      - type: custom:mushroom-title-card
-        title: Night Sky Overview
-        subtitle: What's above you right now
+      - type: markdown
+        content: |
+          ## 🌌 Night Sky Overview
+          What's above you right now
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(156, 39, 176, 0.1);
+              border-left: 4px solid rgb(156, 39, 176);
+            }
 
-      # "What's Above Me Now" Card
-      - type: custom:mushroom-entity-card
-        entity: binary_sensor.nasa_sky_hub_sky_astronomical_night
-        name: Astronomical Night
-        icon: mdi:weather-night
-        tap_action:
-          action: more-info
-        secondary_info: last-updated
-
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_sky_darkness_level
-        name: Sky Darkness
-        icon: mdi:brightness-3
-        tap_action:
-          action: more-info
-
-      - type: custom:mushroom-entity-card
-        entity: binary_sensor.nasa_sky_hub_sky_good_stargazing_conditions
-        name: Good Stargazing Conditions
-        icon: mdi:star-circle
-        tap_action:
-          action: more-info
+      # Sky Conditions
+      - type: entities
+        title: Sky Conditions
+        entities:
+          - entity: binary_sensor.nasa_sky_hub_sky_astronomical_night
+            name: Astronomical Night
+            icon: mdi:weather-night
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_sky_darkness_level
+            name: Sky Darkness Level
+            icon: mdi:brightness-3
+            tap_action:
+              action: more-info
+          - entity: binary_sensor.nasa_sky_hub_sky_good_stargazing_conditions
+            name: Good Stargazing Conditions
+            icon: mdi:star-circle
+            tap_action:
+              action: more-info
 
       # ISS Status
       - type: conditional
@@ -39,18 +43,20 @@ cards:
           - entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
             state: "on"
         card:
-          type: custom:mushroom-entity-card
-          entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
-          name: 🛰️ ISS Overhead Now!
-          icon: mdi:satellite-variant
+          type: entities
+          title: 🛰️ ISS Overhead Now!
+          entities:
+            - entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
+              name: ISS Currently Overhead
+              icon: mdi:satellite-variant
+              tap_action:
+                action: more-info
           card_mod:
             style: |
               ha-card {
                 background: rgba(33, 150, 243, 0.1);
                 border-left: 4px solid rgb(33, 150, 243);
               }
-          tap_action:
-            action: more-info
 
       # Visible Constellations
       - type: entities
@@ -60,34 +66,27 @@ cards:
             name: Constellations
             icon: mdi:star
 
-      # Brightest Object
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_sky_brightest_object
-        name: Brightest Object
-        icon: mdi:star-circle
-        tap_action:
-          action: more-info
-
-      # Next Satellite Pass
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_satellites_next_pass
-        name: Next Satellite Pass
-        icon: mdi:satellite
-        tap_action:
-          action: more-info
-
-      # Sidereal Time
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_sky_sidereal_time
-        name: Sidereal Time
-        icon: mdi:clock-outline
-        tap_action:
-          action: more-info
-
-      # Satellite Count
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_satellites_overhead
-        name: Satellites Overhead
-        icon: mdi:satellite-variant
-        tap_action:
-          action: more-info
+      # Objects & Timing
+      - type: entities
+        title: Objects & Timing
+        entities:
+          - entity: sensor.nasa_sky_hub_sky_brightest_object
+            name: Brightest Object
+            icon: mdi:star-circle
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_satellites_next_pass
+            name: Next Satellite Pass
+            icon: mdi:satellite
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_sky_sidereal_time
+            name: Sidereal Time
+            icon: mdi:clock-outline
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_satellites_overhead
+            name: Satellites Overhead
+            icon: mdi:satellite-variant
+            tap_action:
+              action: more-info

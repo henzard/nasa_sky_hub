@@ -6,41 +6,46 @@ cards:
   - type: vertical-stack
     cards:
       # Header Card
-      - type: custom:mushroom-title-card
-        title: Space Weather Command
-        subtitle: Real-time space weather monitoring
-
-      # Space Weather Overview Card
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_space_weather_severity
-        name: Current Status
-        icon: mdi:weather-night
-        tap_action:
-          action: more-info
-        secondary_info: last-updated
+      - type: markdown
+        content: |
+          ## ⚡ Space Weather Command
+          Real-time space weather monitoring
         card_mod:
           style: |
-            :host {
-              --mushroom-state-icon-color: |
-                {% if is_state('sensor.nasa_sky_hub_space_weather_severity', 'quiet') %}
-                  rgb(76, 175, 80);
-                {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'elevated') %}
-                  rgb(255, 193, 7);
-                {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'storm') %}
-                  rgb(255, 152, 0);
-                {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'severe') %}
-                  rgb(244, 67, 54);
-                {% else %}
-                  rgb(158, 158, 158);
-                {% endif %}
+            ha-card {
+              background: rgba(33, 150, 243, 0.1);
+              border-left: 4px solid rgb(33, 150, 243);
+            }
 
-      # Solar Flare Count
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_space_weather_flares_24h
-        name: Solar Flares (24h)
-        icon: mdi:solar-power
-        tap_action:
-          action: more-info
+      # Space Weather Overview Card
+      - type: entities
+        title: Current Status
+        entities:
+          - entity: sensor.nasa_sky_hub_space_weather_severity
+            name: Space Weather Severity
+            icon: mdi:weather-night
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_space_weather_flares_24h
+            name: Solar Flares (24h)
+            icon: mdi:solar-power
+            tap_action:
+              action: more-info
+        card_mod:
+          style: |
+            ha-card {
+              {% if is_state('sensor.nasa_sky_hub_space_weather_severity', 'quiet') %}
+                border-left: 4px solid rgb(76, 175, 80);
+              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'elevated') %}
+                border-left: 4px solid rgb(255, 193, 7);
+              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'storm') %}
+                border-left: 4px solid rgb(255, 152, 0);
+              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'severe') %}
+                border-left: 4px solid rgb(244, 67, 54);
+              {% else %}
+                border-left: 4px solid rgb(158, 158, 158);
+              {% endif %}
+            }
 
       # Active Alerts Stack
       - type: conditional
@@ -68,12 +73,15 @@ cards:
               entities:
                 - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
                   name: Solar Flare Active
+                  icon: mdi:solar-power
                 - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
                   name: Geomagnetic Storm Active
+                  icon: mdi:magnet
                 - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
                   name: Radiation Storm Active
+                  icon: mdi:radioactive
 
-      # Solar Flare Timeline Chart
+      # Solar Flare Timeline Chart (requires apexcharts-card from HACS)
       - type: custom:apexcharts-card
         title: Solar Flare Activity (72h)
         apex_config:
@@ -107,29 +115,36 @@ cards:
               });
 
       # Recent Flares List
-      - type: entities
-        title: Recent Solar Flares
-        entities:
-          - type: custom:auto-entities
-            card:
-              type: entities
-            filter:
-              template: |
-                {% set flares = state_attr('sensor.nasa_sky_hub_space_weather_severity', 'flares') | default([]) %}
-                {% for flare in flares[:5] %}
-                  - type: custom:mushroom-entity-card
-                    entity: sensor.nasa_sky_hub_space_weather_severity
-                    name: "{{ flare.classType }} - {{ flare.beginTime[:10] }}"
-                    secondary_info: "{{ flare.sourceLocation }}"
-                    tap_action:
-                      action: more-info
-                      entity: sensor.nasa_sky_hub_space_weather_severity
-                {% endfor %}
+      - type: markdown
+        content: |
+          ### Recent Solar Flares
+          {% set flares = state_attr('sensor.nasa_sky_hub_space_weather_severity', 'flares') | default([]) %}
+          {% if flares %}
+            {% for flare in flares[:5] %}
+              - **{{ flare.classType }}** - {{ flare.beginTime[:10] }}
+                - Location: {{ flare.sourceLocation }}
+                - Time: {{ flare.beginTime }}
+            {% endfor %}
+          {% else %}
+            No recent flares
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 193, 7, 0.1);
+            }
 
       # Rate Limit Status
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_api_rate_limit_remaining
-        name: API Rate Limit
-        icon: mdi:api
-        tap_action:
-          action: more-info
+      - type: entities
+        title: API Rate Limit
+        entities:
+          - entity: sensor.nasa_api_rate_limit_remaining
+            name: Remaining Requests
+            icon: mdi:api
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_api_rate_status
+            name: API Status
+            icon: mdi:api
+            tap_action:
+              action: more-info

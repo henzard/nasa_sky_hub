@@ -6,9 +6,16 @@ cards:
   - type: vertical-stack
     cards:
       # Header
-      - type: custom:mushroom-title-card
-        title: Earth & Space Events
-        subtitle: Natural events and space discoveries
+      - type: markdown
+        content: |
+          ## 🌍 Earth & Space Events
+          Natural events and space discoveries
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(33, 150, 243, 0.1);
+              border-left: 4px solid rgb(33, 150, 243);
+            }
 
       # APOD Showcase
       - type: picture-elements
@@ -44,10 +51,12 @@ cards:
           entity: camera.nasa_sky_hub_apod
 
       # Space Weather Badge on APOD
-      - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_space_weather_severity
-        name: Current Space Weather
-        icon: mdi:weather-lightning
-        tap_action:
-          action: navigate
-          navigation_path: /space-weather
+      - type: entities
+        title: Current Space Weather
+        entities:
+          - entity: sensor.nasa_sky_hub_space_weather_severity
+            name: Space Weather Severity
+            icon: mdi:weather-lightning
+            tap_action:
+              action: navigate
+              navigation_path: /space-weather

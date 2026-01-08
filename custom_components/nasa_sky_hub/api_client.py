@@ -6,7 +6,7 @@ from typing import Any
 
 import aiohttp
 
-from .const import NASA_API_BASE
+from .const import EONET_API_BASE, NASA_API_BASE
 from .rate_limiter import RateLimiter
 
 _LOGGER = logging.getLogger(__name__)
@@ -119,9 +119,30 @@ class NASAApiClient:
         return await self._request("GET", "/DONKI/GST", params)
 
     async def get_eonet_events(self, days: int = 30) -> dict[str, Any]:
-        """Get EONET Earth events."""
+        """Get EONET Earth events.
+        
+        EONET is accessed directly through eonet.gsfc.nasa.gov, not api.nasa.gov.
+        It does not require an API key.
+        """
         params = {"days": days}
-        return await self._request("GET", "/EONET/events", params)
+        # EONET uses a different base URL and doesn't require API key
+        session = await self._get_session()
+        url = f"{EONET_API_BASE}/events"
+        
+        try:
+            _LOGGER.debug("Making EONET API request: GET %s", url)
+            async with session.request("GET", url, params=params) as response:
+                _LOGGER.debug("EONET response status: %s", response.status)
+                response.raise_for_status()
+                data = await response.json()
+                _LOGGER.debug("EONET response received, data type: %s", type(data).__name__)
+                return data
+        except aiohttp.ClientError as err:
+            _LOGGER.error("EONET API request failed: %s", err)
+            raise NASAApiError(f"EONET API request failed: {err}") from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error in EONET API request")
+            raise NASAApiError(f"Unexpected error: {err}") from err
 
     async def get_neo_feed(self, start_date: str, end_date: str) -> dict[str, Any]:
         """Get Near Earth Objects feed."""

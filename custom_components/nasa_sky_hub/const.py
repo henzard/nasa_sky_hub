@@ -7,7 +7,9 @@ DOMAIN = "nasa_sky_hub"
 NASA_API_BASE = "https://api.nasa.gov"
 APOD_ENDPOINT = f"{NASA_API_BASE}/planetary/apod"
 DONKI_ENDPOINT = f"{NASA_API_BASE}/DONKI"
-EONET_ENDPOINT = f"{NASA_API_BASE}/EONET"
+# EONET is accessed directly, not through api.nasa.gov
+EONET_API_BASE = "https://eonet.gsfc.nasa.gov/api/v3"
+EONET_ENDPOINT = f"{EONET_API_BASE}/events"
 EPIC_ENDPOINT = f"{NASA_API_BASE}/EPIC"
 NEO_ENDPOINT = f"{NASA_API_BASE}/neo/rest/v1"
 

@@ -77,11 +77,13 @@ class SkyCalculator:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         try:
-            # Observe the sun body directly, not its position
-            sun = self.eph["sun"]
-            astrometric = self.observer.at(t).observe(sun)
-            apparent = astrometric.apparent()
-            sun_alt, _, _ = apparent.altaz()
+            # Convert sun from barycentric to geocentric, then compute topocentric
+            earth_bary = self.eph["earth"].at(t)
+            sun_bary = self.eph["sun"].at(t)
+            sun_geocentric = sun_bary - earth_bary
+            obs_geocentric = self.observer.at(t)
+            topocentric = sun_geocentric - obs_geocentric
+            sun_alt, _, _ = topocentric.altaz()
             return sun_alt.degrees < -18.0
         except Exception as err:
             _LOGGER.debug("Error calculating astronomical night: %s", err)
@@ -96,11 +98,13 @@ class SkyCalculator:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         try:
-            # Observe the sun body directly, not its position
-            sun = self.eph["sun"]
-            astrometric = self.observer.at(t).observe(sun)
-            apparent = astrometric.apparent()
-            sun_alt, _, _ = apparent.altaz()
+            # Convert sun from barycentric to geocentric, then compute topocentric
+            earth_bary = self.eph["earth"].at(t)
+            sun_bary = self.eph["sun"].at(t)
+            sun_geocentric = sun_bary - earth_bary
+            obs_geocentric = self.observer.at(t)
+            topocentric = sun_geocentric - obs_geocentric
+            sun_alt, _, _ = topocentric.altaz()
         except Exception as err:
             _LOGGER.debug("Error calculating darkness level: %s", err)
             return 0.0
@@ -167,11 +171,13 @@ class SkyCalculator:
         if not self.eph:
             return {"name": "None", "type": "none", "magnitude": 0}
         try:
-            # Observe the moon body directly, not its position
-            moon = self.eph["moon"]
-            astrometric = self.observer.at(t).observe(moon)
-            apparent = astrometric.apparent()
-            moon_alt, _, _ = apparent.altaz()
+            # Convert moon from barycentric to geocentric, then compute topocentric
+            earth_bary = self.eph["earth"].at(t)
+            moon_bary = self.eph["moon"].at(t)
+            moon_geocentric = moon_bary - earth_bary
+            obs_geocentric = self.observer.at(t)
+            topocentric = moon_geocentric - obs_geocentric
+            moon_alt, _, _ = topocentric.altaz()
         except Exception as err:
             _LOGGER.debug("Error calculating moon position: %s", err)
             moon_alt = None

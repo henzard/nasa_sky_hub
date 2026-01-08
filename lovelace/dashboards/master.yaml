@@ -165,6 +165,43 @@ cards:
                 tap_action:
                   action: more-info
 
+          # Next Satellite Pass Details
+          - type: markdown
+            content: |
+              ### Next Satellite Pass Details
+              {% set next_pass = state_attr('sensor.nasa_sky_hub_satellites_overhead', 'next_pass') %}
+              {% if next_pass %}
+                **{{ next_pass.name }}** (NORAD ID: {{ next_pass.norad_id }})
+                
+                - **Rise Time:** {{ next_pass.rise_time[:16] }} UTC
+                - **Set Time:** {{ next_pass.set_time[:16] }} UTC
+                - **Max Elevation:** {{ next_pass.max_elevation | round(1) }}°
+                - **Duration:** {{ next_pass.duration_minutes }} minutes
+                - **Peak Time:** {{ next_pass.max_elevation_time[:16] }} UTC
+              {% else %}
+                No upcoming satellite passes in the next 24 hours
+              {% endif %}
+
+          # Currently Visible Satellites
+          - type: markdown
+            content: |
+              ### Currently Visible Satellites
+              {% set satellites = state_attr('sensor.nasa_sky_hub_satellites_overhead', 'satellites') | default([]) %}
+              {% if satellites %}
+                {% for sat in satellites[:10] %}
+                  - **{{ sat.name }}** (NORAD: {{ sat.norad_id }})
+                    - Elevation: {{ sat.elevation | round(1) }}°
+                    - Azimuth: {{ sat.azimuth | round(1) }}°
+                    - Distance: {{ sat.distance_km | round(0) }} km
+                    {% if sat.sunlit %}☀️ Sunlit{% else %}🌙 In shadow{% endif %}
+                {% endfor %}
+                {% if satellites | length > 10 %}
+                  ... and {{ satellites | length - 10 }} more
+                {% endif %}
+              {% else %}
+                No satellites currently visible above the horizon
+              {% endif %}
+
       # Earth Events Section (right column)
       - type: vertical-stack
         cards:

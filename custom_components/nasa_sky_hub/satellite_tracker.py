@@ -22,6 +22,7 @@ class SatelliteTracker:
         self.longitude = longitude
         self.elevation = elevation
         self.tles: dict[int, tuple[str, str]] = {}
+        self.satellite_names: dict[int, str] = {}
         self.tle_update_time: datetime | None = None
         self.ts = load.timescale()
         self.eph: Any = None  # Will be loaded lazily in executor
@@ -54,6 +55,7 @@ class SatelliteTracker:
 
             # Parse TLE format: name line, line 1, line 2
             tles = {}
+            satellite_names = {}  # Store names separately
             for i in range(0, len(lines) - 2, 3):
                 name = lines[i].strip()
                 line1 = lines[i + 1].strip()
@@ -63,10 +65,12 @@ class SatelliteTracker:
                 try:
                     norad_id = int(line1[2:7])
                     tles[norad_id] = (line1, line2)
+                    satellite_names[norad_id] = name
                 except (ValueError, IndexError):
                     continue
 
             self.tles = tles
+            self.satellite_names = satellite_names
             self.tle_update_time = datetime.now(timezone.utc)
             _LOGGER.info("Updated TLE data: %s satellites", len(self.tles))
 
@@ -104,9 +108,11 @@ class SatelliteTracker:
                         except Exception:
                             is_sunlit = True
 
+                    # Get satellite name if available
+                    sat_name = self.satellite_names.get(norad_id, f"SAT-{norad_id}")
                     visible.append({
                         "norad_id": norad_id,
-                        "name": f"SAT-{norad_id}",
+                        "name": sat_name,
                         "azimuth": az.degrees,
                         "elevation": alt.degrees,
                         "distance_km": distance.km,
@@ -189,12 +195,16 @@ class SatelliteTracker:
                             check_time.utc_datetime() + timedelta(minutes=1)
                         )
 
+                    # Get satellite name if available
+                    sat_name = self.satellite_names.get(norad_id, f"SAT-{norad_id}")
                     return {
                         "norad_id": norad_id,
+                        "name": sat_name,
                         "rise_time": rise_time.utc_datetime().isoformat(),
                         "set_time": set_time.utc_datetime().isoformat(),
                         "max_elevation": max_alt,
                         "max_elevation_time": max_alt_time.utc_datetime().isoformat(),
+                        "duration_minutes": int((set_time.utc_datetime() - rise_time.utc_datetime()).total_seconds() / 60),
                     }
 
                 current = self.ts.from_datetime(

@@ -427,7 +427,18 @@ class SatelliteSensor(BaseSensor):
         elif key == "next_pass":
             next_pass = data.get("next_pass")
             if next_pass:
-                return next_pass.get("rise_time")
+                # Return formatted time string with satellite name
+                sat_name = next_pass.get("name", "Satellite")
+                rise_time_str = next_pass.get("rise_time", "")
+                if rise_time_str:
+                    try:
+                        from datetime import datetime, timezone
+                        rise_time = datetime.fromisoformat(rise_time_str.replace("Z", "+00:00"))
+                        # Format as "HH:MM" in local time (or UTC if timezone conversion fails)
+                        return f"{sat_name} at {rise_time.strftime('%H:%M')}"
+                    except Exception:
+                        return rise_time_str
+                return rise_time_str
             return None
         return None
 

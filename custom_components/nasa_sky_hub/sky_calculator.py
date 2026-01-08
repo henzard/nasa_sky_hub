@@ -188,7 +188,8 @@ class SkyCalculator:
             ha_rad = radians(ha * 15)
 
             sin_alt = sin(dec_rad) * sin(lat_rad) + cos(dec_rad) * cos(lat_rad) * cos(ha_rad)
-            alt = degrees(acos(max(-1, min(1, sin_alt))))
+            sin_alt = max(-1, min(1, sin_alt))
+            alt = degrees(asin(sin_alt))
 
             if alt > 10 and star["mag"] < max_mag:
                 max_mag = star["mag"]

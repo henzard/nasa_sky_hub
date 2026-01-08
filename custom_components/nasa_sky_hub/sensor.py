@@ -185,6 +185,7 @@ async def async_setup_entry(
     rate_limiter = data["rate_limiter"]
     location = data["location"]
     enabled_modules = data.get("enabled_modules", [])
+    profile = entry.data.get("profile", PROFILE_BALANCED)
 
     _LOGGER.debug("Enabled modules: %s", enabled_modules)
     _LOGGER.debug("Location: %s", location)
@@ -204,7 +205,7 @@ async def async_setup_entry(
         coordinator = SpaceWeatherCoordinator(
             hass,
             api_client,
-            update_interval=1800,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_SPACE_WEATHER],
         )
         try:
             await coordinator.async_config_entry_first_refresh()
@@ -230,7 +231,7 @@ async def async_setup_entry(
         coordinator = APODCoordinator(
             hass,
             api_client,
-            update_interval=86400,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_APOD],
         )
         try:
             await coordinator.async_config_entry_first_refresh()
@@ -256,7 +257,7 @@ async def async_setup_entry(
             hass,
             api_client,
             location,
-            update_interval=180,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_SATELLITES],
         )
         try:
             await coordinator.async_config_entry_first_refresh()
@@ -281,7 +282,7 @@ async def async_setup_entry(
         coordinator = SkyCoordinator(
             hass,
             location,
-            update_interval=300,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_SKY],
         )
         try:
             await coordinator.async_config_entry_first_refresh()
@@ -308,7 +309,7 @@ async def async_setup_entry(
         sentry_coordinator = SentryCoordinator(
             hass,
             api_client,
-            update_interval=1800,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
         try:
             await sentry_coordinator.async_config_entry_first_refresh()
@@ -331,7 +332,7 @@ async def async_setup_entry(
         cad_coordinator = CADCoordinator(
             hass,
             api_client,
-            update_interval=1800,
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
         try:
             await cad_coordinator.async_config_entry_first_refresh()

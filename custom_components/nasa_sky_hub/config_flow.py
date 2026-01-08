@@ -190,7 +190,8 @@ class NASASkyHubOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        super().__init__()
+        self._config_entry = config_entry
         _LOGGER.debug("Options flow initialized for entry %s", config_entry.entry_id)
 
     async def async_step_init(
@@ -202,7 +203,7 @@ class NASASkyHubOptionsFlowHandler(config_entries.OptionsFlow):
             _LOGGER.debug("Options input received: %s", user_input)
             return self.async_create_entry(title="", data=user_input)
 
-        enabled_modules = self.config_entry.data.get("enabled_modules", [])
+        enabled_modules = self._config_entry.data.get("enabled_modules", [])
         intervals = {}
 
         return self.async_show_form(

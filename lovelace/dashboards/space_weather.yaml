@@ -26,17 +26,16 @@ cards:
             tap_action:
               action: more-info
 
-      # Active Alerts Stack
+      # Active Alerts Stack (show if any alert is active)
       - type: conditional
         conditions:
-          type: or
-          conditions:
-            - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
-              state: "on"
-            - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
-              state: "on"
-            - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
-              state: "on"
+          - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
+            state: "on"
+          - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
+            state: "on"
+          - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
+            state: "on"
+        condition: or
         card:
           type: vertical-stack
           cards:
@@ -109,7 +108,7 @@ cards:
       - type: entities
         title: API Rate Limit
         entities:
-          - entity: sensor.nasa_api_rate_limit_remaining
+          - entity: sensor.nasa_api_rate_remaining
             name: Remaining Requests
             icon: mdi:api
             tap_action:

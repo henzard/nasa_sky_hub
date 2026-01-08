@@ -77,7 +77,8 @@ class SkyCalculator:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         try:
-            sun = self.eph["sun"].at(t)
+            # Observe the sun body directly, not its position
+            sun = self.eph["sun"]
             astrometric = self.observer.at(t).observe(sun)
             apparent = astrometric.apparent()
             sun_alt, _, _ = apparent.altaz()
@@ -95,7 +96,8 @@ class SkyCalculator:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         try:
-            sun = self.eph["sun"].at(t)
+            # Observe the sun body directly, not its position
+            sun = self.eph["sun"]
             astrometric = self.observer.at(t).observe(sun)
             apparent = astrometric.apparent()
             sun_alt, _, _ = apparent.altaz()
@@ -165,7 +167,8 @@ class SkyCalculator:
         if not self.eph:
             return {"name": "None", "type": "none", "magnitude": 0}
         try:
-            moon = self.eph["moon"].at(t)
+            # Observe the moon body directly, not its position
+            moon = self.eph["moon"]
             astrometric = self.observer.at(t).observe(moon)
             apparent = astrometric.apparent()
             moon_alt, _, _ = apparent.altaz()

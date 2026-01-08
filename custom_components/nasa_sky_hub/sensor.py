@@ -365,10 +365,17 @@ class SpaceWeatherSensor(BaseSensor):
         if data is None:
             return {}
         if self.entity_description.key == "severity":
+            # Limit attributes to prevent exceeding 16KB limit
+            flares = data.get("flares", [])[:10]  # Only most recent 10 flares
+            cmes = data.get("cmes", [])[:5]  # Only most recent 5 CMEs
+            storms = data.get("storms", [])[:5]  # Only most recent 5 storms
             return {
-                "flares": data.get("flares", []),
-                "cmes": data.get("cmes", []),
-                "storms": data.get("storms", []),
+                "flares": flares,
+                "cmes": cmes,
+                "storms": storms,
+                "total_flares": len(data.get("flares", [])),
+                "total_cmes": len(data.get("cmes", [])),
+                "total_storms": len(data.get("storms", [])),
             }
         return {}
 

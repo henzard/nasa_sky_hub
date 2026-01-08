@@ -76,9 +76,15 @@ class SkyCalculator:
         if time.tzinfo is None:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
-        astro = self.eph["sun"] + self.observer
-        sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
-        return sun_alt.degrees < -18.0
+        try:
+            sun = self.eph["sun"].at(t)
+            astrometric = self.observer.at(t).observe(sun)
+            apparent = astrometric.apparent()
+            sun_alt, _, _ = apparent.altaz()
+            return sun_alt.degrees < -18.0
+        except Exception as err:
+            _LOGGER.debug("Error calculating astronomical night: %s", err)
+            return False
 
     def get_darkness_level(self, time: datetime) -> float:
         """Get darkness level (0.0 = daylight, 1.0 = darkest)."""
@@ -88,8 +94,14 @@ class SkyCalculator:
         if time.tzinfo is None:
             time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
-        astro = self.eph["sun"] + self.observer
-        sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
+        try:
+            sun = self.eph["sun"].at(t)
+            astrometric = self.observer.at(t).observe(sun)
+            apparent = astrometric.apparent()
+            sun_alt, _, _ = apparent.altaz()
+        except Exception as err:
+            _LOGGER.debug("Error calculating darkness level: %s", err)
+            return 0.0
 
         # Map sun altitude to darkness level
         if sun_alt.degrees > 0:

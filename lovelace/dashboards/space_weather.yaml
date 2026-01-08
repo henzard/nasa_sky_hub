@@ -20,7 +20,7 @@ cards:
             icon: mdi:weather-night
             tap_action:
               action: more-info
-          - entity: sensor.nasa_sky_hub_space_weather_flares_24h
+          - entity: sensor.nasa_sky_hub_solar_flares_24h
             name: Solar Flares (24h)
             icon: mdi:solar-power
             tap_action:
@@ -29,11 +29,11 @@ cards:
       # Active Alerts Stack (show if any alert is active)
       - type: conditional
         conditions:
-          - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
+          - entity: binary_sensor.nasa_sky_hub_solar_flare_active
             state: "on"
-          - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
+          - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
             state: "on"
-          - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
+          - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
             state: "on"
         condition: or
         card:
@@ -45,13 +45,13 @@ cards:
 
             - type: entities
               entities:
-                - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
+                - entity: binary_sensor.nasa_sky_hub_solar_flare_active
                   name: Solar Flare Active
                   icon: mdi:solar-power
-                - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
+                - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
                   name: Geomagnetic Storm Active
                   icon: mdi:magnet
-                - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
+                - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
                   name: Radiation Storm Active
                   icon: mdi:radioactive
 

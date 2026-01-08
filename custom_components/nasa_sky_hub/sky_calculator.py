@@ -144,9 +144,15 @@ class SkyCalculator:
         # Check moon
         if not self.eph:
             return {"name": "None", "type": "none", "magnitude": 0}
-        moon = self.eph["moon"]
-        moon_alt, _, _ = self.observer.at(t).observe(moon).apparent().altaz()
-        if moon_alt.degrees > 0:
+        try:
+            moon = self.eph["moon"].at(t)
+            astrometric = self.observer.at(t).observe(moon)
+            apparent = astrometric.apparent()
+            moon_alt, _, _ = apparent.altaz()
+        except Exception as err:
+            _LOGGER.debug("Error calculating moon position: %s", err)
+            moon_alt = None
+        if moon_alt and moon_alt.degrees > 0:
             # Moon is very bright
             moon_mag = -12.6  # Full moon magnitude
             if moon_mag < max_mag:

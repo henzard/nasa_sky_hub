@@ -95,7 +95,12 @@ async def async_setup_entry(
         try:
             await coordinator.async_config_entry_first_refresh()
         except Exception as err:
-            _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
+            # If setup timed out, just request a refresh instead
+            if "ConfigEntryState" in str(err):
+                _LOGGER.debug("Setup timed out, requesting refresh instead")
+                await coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
             # Don't fail setup, coordinator will retry later
         entities.extend(
             SpaceWeatherBinarySensor(coordinator, desc)
@@ -115,7 +120,12 @@ async def async_setup_entry(
         try:
             await coordinator.async_config_entry_first_refresh()
         except Exception as err:
-            _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
+            # If setup timed out, just request a refresh instead
+            if "ConfigEntryState" in str(err):
+                _LOGGER.debug("Setup timed out, requesting refresh instead")
+                await coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
             # Don't fail setup, coordinator will retry later
         entities.extend(
             SatelliteBinarySensor(coordinator, desc)
@@ -134,7 +144,12 @@ async def async_setup_entry(
         try:
             await coordinator.async_config_entry_first_refresh()
         except Exception as err:
-            _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
+            # If setup timed out, just request a refresh instead
+            if "ConfigEntryState" in str(err):
+                _LOGGER.debug("Setup timed out, requesting refresh instead")
+                await coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
             # Don't fail setup, coordinator will retry later
         entities.extend(
             SkyBinarySensor(coordinator, desc)

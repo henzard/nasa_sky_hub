@@ -4,6 +4,10 @@ icon: mdi:rocket-launch
 panel: false
 cards:
   - type: horizontal-stack
+    style: |
+      ha-card {
+        width: 100%;
+      }
     cards:
       # Space Weather Section (left column)
       - type: vertical-stack

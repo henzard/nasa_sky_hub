@@ -171,6 +171,8 @@ class SpaceWeatherBinarySensor(BaseBinarySensor):
     def is_on(self) -> bool:
         """Return sensor state."""
         data = self.coordinator.data
+        if data is None:
+            return False
         key = self.entity_description.key
 
         if key == "solar_flare_active":
@@ -190,6 +192,8 @@ class SpaceWeatherBinarySensor(BaseBinarySensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         attrs = {}
         if self.entity_description.key == "solar_flare_active":
             flares = data.get("flares", [])
@@ -210,6 +214,8 @@ class SatelliteBinarySensor(BaseBinarySensor):
     def is_on(self) -> bool:
         """Return sensor state."""
         data = self.coordinator.data
+        if data is None:
+            return False
         key = self.entity_description.key
 
         if key == "iss_overhead":
@@ -234,6 +240,8 @@ class SatelliteBinarySensor(BaseBinarySensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         attrs = {}
         if self.entity_description.key == "iss_overhead" and data.get("iss_data"):
             attrs.update({
@@ -253,6 +261,8 @@ class SkyBinarySensor(BaseBinarySensor):
     def is_on(self) -> bool:
         """Return sensor state."""
         data = self.coordinator.data
+        if data is None:
+            return False
         key = self.entity_description.key
 
         if key == "astronomical_night":
@@ -265,6 +275,8 @@ class SkyBinarySensor(BaseBinarySensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         return {
             "darkness_level": data.get("darkness_level", 0.0),
             "visible_constellations": data.get("visible_constellations", []),

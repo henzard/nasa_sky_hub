@@ -59,6 +59,8 @@ class APODCamera(CoordinatorEntity, Camera):
     def entity_picture(self) -> str | None:
         """Return URL of the entity picture."""
         data = self.coordinator.data
+        if data is None:
+            return None
         # Prefer HD URL if available
         return data.get("hdurl") or data.get("url")
 
@@ -69,6 +71,8 @@ class APODCamera(CoordinatorEntity, Camera):
         import aiohttp
 
         data = self.coordinator.data
+        if data is None:
+            return None
         url = data.get("hdurl") or data.get("url")
 
         if not url:
@@ -87,6 +91,8 @@ class APODCamera(CoordinatorEntity, Camera):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         return {
             "title": data.get("title", ""),
             "date": data.get("date", ""),

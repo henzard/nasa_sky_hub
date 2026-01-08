@@ -246,6 +246,8 @@ class SpaceWeatherSensor(BaseSensor):
     def native_value(self) -> str | int | None:
         """Return sensor value."""
         data = self.coordinator.data
+        if data is None:
+            return None
         key = self.entity_description.key
 
         if key == "severity":
@@ -258,6 +260,8 @@ class SpaceWeatherSensor(BaseSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         if self.entity_description.key == "severity":
             return {
                 "flares": data.get("flares", []),
@@ -274,12 +278,16 @@ class APODSensor(BaseSensor):
     def native_value(self) -> str | None:
         """Return sensor value."""
         data = self.coordinator.data
+        if data is None:
+            return None
         return data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         return {
             "explanation": data.get("explanation", ""),
             "url": data.get("url", ""),
@@ -295,6 +303,8 @@ class SatelliteSensor(BaseSensor):
     def native_value(self) -> str | int | None:
         """Return sensor value."""
         data = self.coordinator.data
+        if data is None:
+            return None
         key = self.entity_description.key
 
         if key == "satellites_overhead":
@@ -310,6 +320,8 @@ class SatelliteSensor(BaseSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         attrs = {
             "satellites": data.get("satellites", []),
             "iss_overhead": data.get("iss_overhead", False),
@@ -328,6 +340,8 @@ class SkySensor(BaseSensor):
     def native_value(self) -> str | float | None:
         """Return sensor value."""
         data = self.coordinator.data
+        if data is None:
+            return None
         key = self.entity_description.key
 
         if key == "visible_constellations":
@@ -347,6 +361,8 @@ class SkySensor(BaseSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         data = self.coordinator.data
+        if data is None:
+            return {}
         attrs = {}
         if self.entity_description.key == "brightest_object":
             attrs["brightest_object"] = data.get("brightest_object", {})

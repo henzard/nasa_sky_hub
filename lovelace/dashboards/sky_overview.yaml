@@ -10,12 +10,6 @@ cards:
         content: |
           ## 🌌 Night Sky Overview
           What's above you right now
-        card_mod:
-          style: |
-            ha-card {
-              background: rgba(156, 39, 176, 0.1);
-              border-left: 4px solid rgb(156, 39, 176);
-            }
 
       # Sky Conditions
       - type: entities
@@ -51,12 +45,6 @@ cards:
               icon: mdi:satellite-variant
               tap_action:
                 action: more-info
-          card_mod:
-            style: |
-              ha-card {
-                background: rgba(33, 150, 243, 0.1);
-                border-left: 4px solid rgb(33, 150, 243);
-              }
 
       # Visible Constellations
       - type: entities

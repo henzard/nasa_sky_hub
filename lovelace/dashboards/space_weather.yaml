@@ -10,12 +10,6 @@ cards:
         content: |
           ## ⚡ Space Weather Command
           Real-time space weather monitoring
-        card_mod:
-          style: |
-            ha-card {
-              background: rgba(33, 150, 243, 0.1);
-              border-left: 4px solid rgb(33, 150, 243);
-            }
 
       # Space Weather Overview Card
       - type: entities
@@ -31,43 +25,24 @@ cards:
             icon: mdi:solar-power
             tap_action:
               action: more-info
-        card_mod:
-          style: |
-            ha-card {
-              {% if is_state('sensor.nasa_sky_hub_space_weather_severity', 'quiet') %}
-                border-left: 4px solid rgb(76, 175, 80);
-              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'elevated') %}
-                border-left: 4px solid rgb(255, 193, 7);
-              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'storm') %}
-                border-left: 4px solid rgb(255, 152, 0);
-              {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'severe') %}
-                border-left: 4px solid rgb(244, 67, 54);
-              {% else %}
-                border-left: 4px solid rgb(158, 158, 158);
-              {% endif %}
-            }
 
       # Active Alerts Stack
       - type: conditional
         conditions:
-          - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
-            state: "on"
-          - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
-            state: "on"
-          - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
-            state: "on"
+          type: or
+          conditions:
+            - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
+              state: "on"
+            - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
+              state: "on"
+            - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
+              state: "on"
         card:
           type: vertical-stack
           cards:
             - type: markdown
               content: |
                 ## ⚠️ Active Alerts
-              card_mod:
-                style: |
-                  ha-card {
-                    background: rgba(244, 67, 54, 0.1);
-                    border-left: 4px solid rgb(244, 67, 54);
-                  }
 
             - type: entities
               entities:
@@ -81,38 +56,39 @@ cards:
                   name: Radiation Storm Active
                   icon: mdi:radioactive
 
-      # Solar Flare Timeline Chart (requires apexcharts-card from HACS)
-      - type: custom:apexcharts-card
-        title: Solar Flare Activity (72h)
-        apex_config:
-          chart:
-            type: line
-            height: 300
-          xaxis:
-            type: datetime
-          yaxis:
-            title:
-              text: Flare Intensity
-          stroke:
-            curve: smooth
-        series:
-          - entity: sensor.nasa_sky_hub_space_weather_severity
-            name: Severity
-            type: line
-            data_generator: |
-              return entity.attributes.flares.map(flare => {
-                const time = new Date(flare.beginTime).getTime();
-                const classType = flare.classType || 'C';
-                let intensity = 0;
-                if (classType.startsWith('X')) {
-                  intensity = 3 + parseFloat(classType.substring(1)) / 10;
-                } else if (classType.startsWith('M')) {
-                  intensity = 2 + parseFloat(classType.substring(1)) / 10;
-                } else if (classType.startsWith('C')) {
-                  intensity = 1 + parseFloat(classType.substring(1)) / 10;
-                }
-                return [time, intensity];
-              });
+      # Solar Flare Timeline Chart (optional - requires apexcharts-card from HACS)
+      # Comment out or remove this card if you don't have apexcharts-card installed
+      # - type: custom:apexcharts-card
+      #   title: Solar Flare Activity (72h)
+      #   apex_config:
+      #     chart:
+      #       type: line
+      #       height: 300
+      #     xaxis:
+      #       type: datetime
+      #     yaxis:
+      #       title:
+      #         text: Flare Intensity
+      #     stroke:
+      #       curve: smooth
+      #   series:
+      #     - entity: sensor.nasa_sky_hub_space_weather_severity
+      #       name: Severity
+      #       type: line
+      #       data_generator: |
+      #         return entity.attributes.flares.map(flare => {
+      #           const time = new Date(flare.beginTime).getTime();
+      #           const classType = flare.classType || 'C';
+      #           let intensity = 0;
+      #           if (classType.startsWith('X')) {
+      #             intensity = 3 + parseFloat(classType.substring(1)) / 10;
+      #           } else if (classType.startsWith('M')) {
+      #             intensity = 2 + parseFloat(classType.substring(1)) / 10;
+      #           } else if (classType.startsWith('C')) {
+      #             intensity = 1 + parseFloat(classType.substring(1)) / 10;
+      #           }
+      #           return [time, intensity];
+      #         });
 
       # Recent Flares List
       - type: markdown
@@ -128,11 +104,6 @@ cards:
           {% else %}
             No recent flares
           {% endif %}
-        card_mod:
-          style: |
-            ha-card {
-              background: rgba(255, 193, 7, 0.1);
-            }
 
       # Rate Limit Status
       - type: entities

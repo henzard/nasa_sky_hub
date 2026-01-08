@@ -38,17 +38,57 @@ class SkyCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Calculate sky visibility data."""
+        now = datetime.now(timezone.utc)
+        
+        # Return default values if calculator fails
+        default_data = {
+            "astronomical_night": False,
+            "darkness_level": 0.0,
+            "visible_constellations": [],
+            "brightest_object": {"name": "Unknown", "type": "none", "magnitude": 0},
+            "sidereal_time": "00:00:00",
+            "good_stargazing": False,
+            "last_update": now.isoformat(),
+        }
+        
         try:
             # Ensure ephemeris is loaded (in executor to avoid blocking)
             await self.calculator._ensure_eph_loaded(self.hass)
-            now = datetime.now(timezone.utc)
+            
+            if not self.calculator.eph:
+                _LOGGER.warning("Ephemeris not loaded, returning default sky data")
+                return default_data
 
-            # Calculate various sky conditions
-            is_astronomical_night = self.calculator.is_astronomical_night(now)
-            darkness_level = self.calculator.get_darkness_level(now)
-            visible_constellations = self.calculator.get_visible_constellations(now)
-            brightest_object = self.calculator.get_brightest_object(now)
-            sidereal_time = self.calculator.get_sidereal_time(now)
+            # Calculate various sky conditions with error handling
+            try:
+                is_astronomical_night = self.calculator.is_astronomical_night(now)
+            except Exception as err:
+                _LOGGER.warning("Error calculating astronomical night: %s", err)
+                is_astronomical_night = False
+                
+            try:
+                darkness_level = self.calculator.get_darkness_level(now)
+            except Exception as err:
+                _LOGGER.warning("Error calculating darkness level: %s", err)
+                darkness_level = 0.0
+                
+            try:
+                visible_constellations = self.calculator.get_visible_constellations(now)
+            except Exception as err:
+                _LOGGER.warning("Error calculating visible constellations: %s", err)
+                visible_constellations = []
+                
+            try:
+                brightest_object = self.calculator.get_brightest_object(now)
+            except Exception as err:
+                _LOGGER.warning("Error calculating brightest object: %s", err)
+                brightest_object = {"name": "Unknown", "type": "none", "magnitude": 0}
+                
+            try:
+                sidereal_time = self.calculator.get_sidereal_time(now)
+            except Exception as err:
+                _LOGGER.warning("Error calculating sidereal time: %s", err)
+                sidereal_time = "00:00:00"
 
             # Determine if conditions are good for stargazing
             good_conditions = (
@@ -68,4 +108,7 @@ class SkyCoordinator(DataUpdateCoordinator):
             }
 
         except Exception as err:
-            raise UpdateFailed(f"Error calculating sky data: {err}") from err
+            _LOGGER.error("Error in sky coordinator update: %s", err, exc_info=True)
+            # Return default data instead of raising UpdateFailed
+            # This allows entities to register and show as unavailable rather than not existing
+            return default_data

@@ -10,12 +10,6 @@ cards:
         content: |
           ## 🌍 Earth & Space Events
           Natural events and space discoveries
-        card_mod:
-          style: |
-            ha-card {
-              background: rgba(33, 150, 243, 0.1);
-              border-left: 4px solid rgb(33, 150, 243);
-            }
 
       # APOD Showcase
       - type: picture-elements

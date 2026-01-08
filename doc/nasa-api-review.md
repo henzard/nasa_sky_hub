@@ -107,13 +107,99 @@ This document reviews each NASA API from the official catalog (https://api.nasa.
 
 ### 11. Satellite Situation Center (SSC)
 - **Status**: ❌ Not Implemented
-- **Use Case**: System to cast geocentric spacecraft location information into geophysical regions
-- **Potential Value**: ⚠️ **Moderate Value** - Could enhance satellite tracking with geophysical region context, but adds complexity
+- **Endpoint**: `POST https://sscweb.gsfc.nasa.gov/WS/sscr/2/{endpoint}`
+- **Endpoints**:
+  - `/locations` - Get spacecraft locations with geophysical region mapping
+  - `/graphs` - Generate orbit plots
+  - `/conjunctions` - Find magnetic/radial conjunctions between satellites
+- **Use Case**: System to cast geocentric spacecraft location information into geophysical regions (magnetosphere, plasmasphere, etc.)
+- **Parameters**: Complex XML/JSON requests with satellite IDs, time intervals, coordinate systems, magnetic field models
+- **Potential Value**: ⚠️ **Moderate Value** - Could enhance satellite tracking with geophysical region context (e.g., "ISS is in nightside magnetosphere"), but:
+  - Very complex API (requires XML schema knowledge, magnetic field models)
+  - JSON support is "less stable and may change"
+  - Primarily designed for scientific research, not real-time monitoring
+  - Would add significant complexity for moderate value
+- **Recommendation**: Skip for now - too complex for the value it provides
 
-### 12. SSD/CNEOS (Solar System Dynamics)
+### 12. SSD/CNEOS (Solar System Dynamics / Center for Near-Earth Object Studies)
 - **Status**: ❌ Not Implemented
-- **Use Case**: Solar System Dynamics and Center for Near-Earth Object Studies
-- **Potential Value**: ✅ **High Value** - Could enhance asteroid tracking with more detailed orbital mechanics data. Complements NeoWs feed.
+- **Base URL**: `https://ssd-api.jpl.nasa.gov/`
+- **APIs Available**:
+  
+  #### 12a. CAD (Close Approach Data) API ✅ **HIGH VALUE**
+  - **Endpoint**: `GET https://ssd-api.jpl.nasa.gov/cad.api`
+  - **Use Case**: Close approach data for asteroids and comets (when they pass near Earth/planets)
+  - **Key Parameters**:
+    - `date-min`, `date-max` - Date range (default: now to +60 days)
+    - `dist-max` - Maximum approach distance (default: 0.05 AU)
+    - `body` - Target body (Earth, Moon, Mars, etc., default: Earth)
+    - `neo` - Filter to NEOs only (default: true)
+    - `pha` - Filter to Potentially Hazardous Asteroids
+    - `sort` - Sort by date, distance, velocity, etc.
+  - **Returns**: Detailed close approach data including:
+    - Approach distance (nominal, min, max with 3-sigma uncertainty)
+    - Velocity (relative and infinity)
+    - Object diameter, absolute magnitude
+    - Approach date/time
+  - **Potential Value**: ✅ **VERY HIGH** - Perfect complement to NeoWs feed:
+    - Provides detailed close approach predictions (when asteroids will be closest)
+    - Includes uncertainty ranges (3-sigma)
+    - Can filter by distance, size, velocity
+    - Can query approaches to Moon, Mars, etc. (not just Earth)
+  - **Recommendation**: **Implement this** - Would add significant value for asteroid tracking
+  
+  #### 12b. Fireball Data API ⚠️ **MODERATE VALUE**
+  - **Endpoint**: `GET https://ssd-api.jpl.nasa.gov/fireball.api`
+  - **Use Case**: Fireball (bright meteor) data from CNEOS sensors
+  - **Key Parameters**:
+    - `date-min`, `date-max` - Date range
+    - `energy-min`, `energy-max` - Total radiated energy filter
+    - `impact-e-min`, `impact-e-max` - Impact energy filter (kilotons)
+    - `req-loc`, `req-alt` - Require location/altitude data
+  - **Returns**: Fireball events with:
+    - Date/time, location (lat/lon), altitude
+    - Total radiated energy (×10¹⁰ joules)
+    - Estimated impact energy (kilotons)
+    - Entry velocity components (vx, vy, vz)
+  - **Potential Value**: ⚠️ **MODERATE** - Interesting but:
+    - Historical data (fireballs that already happened)
+    - Not predictive (can't predict future fireballs)
+    - Useful for "recent fireball events" sensor but limited real-time value
+  - **Recommendation**: Consider for future - Nice-to-have but not critical
+  
+  #### 12c. Sentry API ✅ **HIGH VALUE**
+  - **Endpoint**: `GET https://ssd-api.jpl.nasa.gov/sentry.api`
+  - **Use Case**: Impact risk assessment for asteroids (CNEOS Sentry system)
+  - **Modes**:
+    - **Mode O** - Object-specific details (query by asteroid designation)
+    - **Mode S** - Summary table (all Sentry objects)
+    - **Mode V** - Virtual Impactor (VI) table
+    - **Mode R** - Removed objects (previously tracked, now removed)
+  - **Key Parameters**:
+    - `des` or `spk` - Asteroid designation/SPK-ID (Mode O)
+    - `ip-min` - Minimum impact probability filter
+    - `ps-min` - Minimum Palermo Scale filter
+    - `h-max` - Maximum absolute magnitude (size filter)
+    - `days` - Days since last observation
+  - **Returns**: Impact risk data including:
+    - Impact probability (cumulative and per-event)
+    - Palermo Scale (hazard rating)
+    - Torino Scale (hazard rating, <100 years only)
+    - Impact energy (Megatons TNT)
+    - Impact dates
+    - Object diameter, mass, velocity
+  - **Potential Value**: ✅ **VERY HIGH** - Critical for asteroid threat monitoring:
+    - Provides impact risk assessment (which asteroids could hit Earth)
+    - Includes hazard scales (Palermo, Torino)
+    - Shows impact probabilities and dates
+    - Can track objects removed from Sentry (no longer threats)
+  - **Recommendation**: **Implement this** - Essential for comprehensive asteroid threat awareness
+  
+  #### 12d. Other SSD APIs
+  - **NHATS** (Near-Earth Object Human Space Flight Accessible Targets Study) - Mission design data
+  - **Scout** - Real-time impact assessment for newly discovered objects
+  - **Mission Design** - Trajectory design tools
+  - **Potential Value**: ⚠️ **Low** - Specialized mission planning tools, not general space awareness
 
 ### 13. Techport
 - **Status**: ❌ Not Implemented
@@ -164,14 +250,27 @@ This document reviews each NASA API from the official catalog (https://api.nasa.
 
 ### Potential Enhancements (Ranked by Value)
 
+#### Critical High Value Additions ✅ **IMPLEMENT THESE**
+1. **SSD/CNEOS Sentry API** - Impact risk assessment for asteroids
+   - Provides impact probabilities, hazard scales (Palermo/Torino)
+   - Shows which asteroids pose threats to Earth
+   - Essential for comprehensive asteroid threat monitoring
+   - **Priority**: **HIGHEST** - Critical safety data
+
+2. **SSD/CNEOS CAD API** - Close Approach Data
+   - Detailed close approach predictions (when asteroids pass closest)
+   - Includes uncertainty ranges, velocities, sizes
+   - Can query approaches to Earth, Moon, Mars, etc.
+   - **Priority**: **HIGH** - Perfect complement to NeoWs feed
+
 #### High Value Additions ✅
-1. **SSD/CNEOS**: Add detailed asteroid/orbital mechanics data to complement NeoWs feed
-2. **EPIC**: Add Earth imagery camera entity (full disc Earth from DSCOVR)
-3. **DONKI Additional Endpoints**: Add SEP, IPS, RBE for comprehensive space weather monitoring
+3. **EPIC**: Add Earth imagery camera entity (full disc Earth from DSCOVR)
+4. **DONKI Additional Endpoints**: Add SEP, IPS, RBE for comprehensive space weather monitoring
 
 #### Moderate Value ⚠️
-4. **NeoWs Lookup/Browse**: Add asteroid lookup and browse endpoints for detailed asteroid info
-5. **Satellite Situation Center**: Add geophysical region context to satellite tracking
+5. **SSD/CNEOS Fireball API** - Recent fireball events (historical data, not predictive)
+6. **NeoWs Lookup/Browse**: Add asteroid lookup and browse endpoints for detailed asteroid info
+7. **Satellite Situation Center**: Add geophysical region context to satellite tracking (complex, moderate value)
 
 #### Low Priority / Not Recommended ❌
 6. **Insight Mars Weather**: Has significant data gaps, unreliable for real-time monitoring
@@ -197,10 +296,12 @@ All `api.nasa.gov` APIs share the same rate limits:
 - EONET endpoint corrected (was using wrong base URL)
 - TLE data source verified (Celestrak is optimal choice)
 
-### 🎯 Recommended Next Additions
-1. **SSD/CNEOS** - High value for enhanced asteroid tracking
-2. **EPIC** - High value for Earth imagery camera entity
-3. **DONKI SEP/IPS/RBE** - High value for comprehensive space weather
+### 🎯 Recommended Next Additions (Priority Order)
+1. **SSD/CNEOS Sentry API** - **CRITICAL** - Impact risk assessment (which asteroids threaten Earth)
+2. **SSD/CNEOS CAD API** - **HIGH** - Close approach predictions (when asteroids pass closest)
+3. **EPIC** - High value for Earth imagery camera entity
+4. **DONKI SEP/IPS/RBE** - High value for comprehensive space weather
+5. **SSD/CNEOS Fireball API** - Moderate value for recent fireball events (historical)
 
 ### ⚠️ APIs Not Recommended
 - **Insight**: Data reliability issues (power management gaps)
@@ -219,3 +320,8 @@ All `api.nasa.gov` APIs share the same rate limits:
 - TechTransfer API: https://api.nasa.gov/#techtransfer
 - TLE API: http://tle.ivanstanojevic.me (not api.nasa.gov)
 - Celestrak: https://celestrak.org/ (our TLE source)
+- SSD/CNEOS APIs: https://ssd-api.jpl.nasa.gov/
+  - CAD API: https://ssd-api.jpl.nasa.gov/doc/cad.html
+  - Fireball API: https://ssd-api.jpl.nasa.gov/doc/fireball.html
+  - Sentry API: https://ssd-api.jpl.nasa.gov/doc/sentry.html
+- Satellite Situation Center: https://sscweb.gsfc.nasa.gov/WebServices/REST/json/

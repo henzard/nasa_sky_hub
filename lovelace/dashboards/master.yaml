@@ -1,21 +1,9 @@
 title: NASA Sky Hub Master Dashboard
 path: nasa-sky-hub
 icon: mdi:rocket-launch
-panel: false
+panel: true
 cards:
   - type: horizontal-stack
-    card_mod:
-      style: |
-        ha-card {
-          width: 100%;
-        }
-        .horizontal-stack {
-          width: 100%;
-        }
-        .horizontal-stack > * {
-          flex: 1 1 0;
-          min-width: 0;
-        }
     cards:
       # Space Weather Section (left column)
       - type: vertical-stack

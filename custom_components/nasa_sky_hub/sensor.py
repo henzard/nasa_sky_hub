@@ -19,6 +19,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, MODULE_APOD, MODULE_ASTEROIDS, MODULE_SATELLITES, MODULE_SKY, MODULE_SPACE_WEATHER
 from .coordinators.apod import APODCoordinator
 from .coordinators.asteroids import CADCoordinator, SentryCoordinator
+from .coordinators.neows import NeoWsCoordinator
 from .coordinators.satellites import SatelliteCoordinator
 from .coordinators.sky import SkyCoordinator
 from .coordinators.space_weather import SpaceWeatherCoordinator
@@ -121,6 +122,28 @@ ASTEROID_CAD_SENSORS = [
     SensorEntityDescription(
         key="next_approach",
         name="Next Close Approach",
+        icon="mdi:rocket-launch",
+    ),
+]
+
+NEO_WS_SENSORS = [
+    SensorEntityDescription(
+        key="total_neos",
+        name="Near Earth Objects",
+        icon="mdi:asteroid",
+        native_unit_of_measurement="objects",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="potentially_hazardous",
+        name="Potentially Hazardous Objects",
+        icon="mdi:alert-circle",
+        native_unit_of_measurement="objects",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="closest_approach",
+        name="Closest Approach",
         icon="mdi:rocket-launch",
     ),
 ]
@@ -317,6 +340,28 @@ async def async_setup_entry(
             for desc in ASTEROID_CAD_SENSORS
         )
         data["coordinators"][f"{MODULE_ASTEROIDS}_cad"] = cad_coordinator
+        
+        # NeoWs feed coordinator (uses NASA NeoWs API)
+        neows_coordinator = NeoWsCoordinator(
+            hass,
+            api_client,
+            days_ahead=7,  # Default to 7 days ahead
+            update_interval=DEFAULT_UPDATE_INTERVALS[profile][MODULE_ASTEROIDS],
+        )
+        try:
+            await neows_coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("NeoWs coordinator refreshed, data: %s", neows_coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh NeoWs coordinator on setup: %s", err)
+            if "ConfigEntryState" in str(err):
+                _LOGGER.debug("Setup timed out, requesting refresh instead")
+                await neows_coordinator.async_request_refresh()
+            # Don't fail setup, coordinator will retry later
+        entities.extend(
+            NeoWsSensor(neows_coordinator, desc)
+            for desc in NEO_WS_SENSORS
+        )
+        data["coordinators"][f"{MODULE_ASTEROIDS}_neows"] = neows_coordinator
 
     _LOGGER.info("Created %s sensor entities", len(entities))
     # Log entity details for diagnostics
@@ -566,10 +611,12 @@ class CADSensor(BaseSensor):
         if key == "total_approaches":
             return data.get("total_approaches", 0)
         elif key == "next_approach":
-            next_approach = data.get("next_approach")
-            if next_approach:
-                return next_approach.get("approach_date")
-            return None
+            approaches = data.get("approaches", [])
+            if not approaches:
+                return None
+            # CAD data is sorted by date, so the first one is the next
+            next_approach = approaches[0]
+            return next_approach.get("close_approach_date_full")
         return None
 
     @property
@@ -608,6 +655,53 @@ class CADSensor(BaseSensor):
                 for app in approaches[:10]
             ]
         
+        return attrs
+
+
+class NeoWsSensor(BaseSensor):
+    """NeoWs feed sensor."""
+
+    @property
+    def native_value(self) -> str | int | None:
+        """Return sensor value."""
+        data = self.coordinator.data
+        if data is None:
+            return None
+        key = self.entity_description.key
+
+        if key == "total_neos":
+            return data.get("total_neos", 0)
+        elif key == "potentially_hazardous":
+            return data.get("potentially_hazardous_count", 0)
+        elif key == "closest_approach":
+            approaches = data.get("closest_approaches", [])
+            if not approaches:
+                return None
+            closest = approaches[0]
+            return closest.get("close_approach_date_full")
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra state attributes."""
+        data = self.coordinator.data
+        if data is None:
+            return {}
+        attrs = {}
+        key = self.entity_description.key
+        
+        if key == "total_neos":
+            attrs["element_count"] = data.get("element_count", 0)
+            attrs["potentially_hazardous_count"] = data.get("potentially_hazardous_count", 0)
+        elif key == "potentially_hazardous":
+            # Include list of potentially hazardous objects
+            approaches = data.get("closest_approaches", [])
+            pha_objects = [a for a in approaches if a.get("is_potentially_hazardous", False)]
+            attrs["hazardous_objects"] = pha_objects[:10]  # Top 10
+        elif key == "closest_approach":
+            approaches = data.get("closest_approaches", [])
+            if approaches:
+                attrs["closest_approaches"] = approaches[:10]  # Top 10 closest
         return attrs
 
 

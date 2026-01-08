@@ -1,0 +1,112 @@
+title: Near Earth Object Watcher
+path: neo-watcher
+icon: mdi:asteroid
+panel: false
+cards:
+  - type: vertical-stack
+    cards:
+      # Header
+      - type: markdown
+        content: |
+          ## 🌍 Near Earth Object Watcher
+          Monitoring asteroids and comets approaching Earth
+
+      # Summary Stats
+      - type: entities
+        title: NEO Summary
+        entities:
+          - entity: sensor.nasa_sky_hub_asteroids_neows_total_neos
+            name: Total Near Earth Objects
+            icon: mdi:asteroid
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_asteroids_neows_potentially_hazardous
+            name: Potentially Hazardous Objects
+            icon: mdi:alert-circle
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_asteroids_neows_closest_approach
+            name: Closest Approach
+            icon: mdi:rocket-launch
+            tap_action:
+              action: more-info
+
+      # Potentially Hazardous Objects
+      - type: conditional
+        conditions:
+          - entity: sensor.nasa_sky_hub_asteroids_neows_potentially_hazardous
+            state: "0"
+            state_not: true
+        card:
+          type: markdown
+          content: |
+            ### ⚠️ Potentially Hazardous Objects
+            
+            {% set pha_sensor = 'sensor.nasa_sky_hub_asteroids_neows_potentially_hazardous' %}
+            {% set hazardous = state_attr(pha_sensor, 'hazardous_objects') | default([]) %}
+            
+            {% if hazardous %}
+              {% for obj in hazardous[:5] %}
+                - **{{ obj.name }}**
+                  - Approach Date: {{ obj.close_approach_date }}
+                  - Miss Distance: {{ (obj.miss_distance_km / 1000) | round(2) }} thousand km
+                  - Size: {{ obj.estimated_diameter_min_km | round(3) }}-{{ obj.estimated_diameter_max_km | round(3) }} km
+                  - Velocity: {{ (obj.relative_velocity_kmh / 1000) | round(1) }} thousand km/h
+              {% endfor %}
+            {% else %}
+              No potentially hazardous objects in the next 7 days
+            {% endif %}
+
+      # Closest Approaches
+      - type: markdown
+        content: |
+          ### 🔭 Closest Approaches (Next 7 Days)
+          
+          {% set closest_sensor = 'sensor.nasa_sky_hub_asteroids_neows_closest_approach' %}
+          {% set approaches = state_attr(closest_sensor, 'closest_approaches') | default([]) %}
+          
+          {% if approaches %}
+            | Name | Date | Distance | Size | Velocity |
+            |------|------|----------|------|----------|
+            {% for obj in approaches[:10] %}
+              | **{{ obj.name }}**{% if obj.is_potentially_hazardous %} ⚠️{% endif %} | {{ obj.close_approach_date }} | {{ (obj.miss_distance_km / 1000) | round(2) }}k km<br/>({{ obj.miss_distance_lunar | round(2) }} lunar) | {{ obj.estimated_diameter_min_km | round(2) }}-{{ obj.estimated_diameter_max_km | round(2) }} km | {{ (obj.relative_velocity_kmh / 1000) | round(1) }}k km/h |
+            {% endfor %}
+          {% else %}
+            No close approaches in the next 7 days
+          {% endif %}
+
+      # Sentry Impact Risk (if available)
+      - type: conditional
+        conditions:
+          - entity: sensor.nasa_sky_hub_asteroids_sentry_total_threats
+            state: "0"
+            state_not: true
+        card:
+          type: entities
+          title: 🚨 Impact Risk Assessment (Sentry)
+          entities:
+            - entity: sensor.nasa_sky_hub_asteroids_sentry_total_threats
+              name: Total Impact Threats
+              icon: mdi:alert-circle
+              tap_action:
+                action: more-info
+            - entity: sensor.nasa_sky_hub_asteroids_sentry_max_palermo_scale
+              name: Highest Palermo Scale
+              icon: mdi:alert
+              tap_action:
+                action: more-info
+
+      # CAD Close Approaches (if available)
+      - type: entities
+        title: Close Approach Data (60 Days)
+        entities:
+          - entity: sensor.nasa_sky_hub_asteroids_cad_total_approaches
+            name: Total Approaches
+            icon: mdi:orbit
+            tap_action:
+              action: more-info
+          - entity: sensor.nasa_sky_hub_asteroids_cad_next_approach
+            name: Next Approach
+            icon: mdi:rocket-launch
+            tap_action:
+              action: more-info

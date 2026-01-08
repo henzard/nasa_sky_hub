@@ -302,7 +302,7 @@ async def async_setup_entry(
 
     # Asteroid sensors (Sentry and CAD)
     if MODULE_ASTEROIDS in enabled_modules:
-        _LOGGER.info("Setting up Asteroid sensors")
+        _LOGGER.info("Setting up Asteroid sensors (module is enabled)")
         
         # Sentry coordinator (impact risk)
         sentry_coordinator = SentryCoordinator(

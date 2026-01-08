@@ -172,7 +172,19 @@ class CADCoordinator(DataUpdateCoordinator):
 
         except NASAApiError as err:
             _LOGGER.error("NASA API error fetching CAD data: %s", err)
-            raise UpdateFailed(f"Error fetching CAD data: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "count": 0,
+                "approaches": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }
         except Exception as err:
             _LOGGER.exception("Unexpected error fetching CAD data")
-            raise UpdateFailed(f"Unexpected error: {err}") from err
+            # Return default data instead of raising to allow retries
+            return {
+                "count": 0,
+                "approaches": [],
+                "last_update": datetime.now(timezone.utc).isoformat(),
+                "error": str(err),
+            }

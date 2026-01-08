@@ -254,3 +254,44 @@ cards:
                 tap_action:
                   action: navigate
                   navigation_path: /space-weather
+
+          # Near Earth Objects Summary
+          - type: entities
+            title: 🌍 Near Earth Objects
+            entities:
+              - entity: sensor.nasa_sky_hub_asteroids_neows_total_neos
+                name: Total NEOs (7 days)
+                icon: mdi:asteroid
+                tap_action:
+                  action: navigate
+                  navigation_path: /neo-watcher
+              - entity: sensor.nasa_sky_hub_asteroids_neows_potentially_hazardous
+                name: Potentially Hazardous
+                icon: mdi:alert-circle
+                tap_action:
+                  action: navigate
+                  navigation_path: /neo-watcher
+              - entity: sensor.nasa_sky_hub_asteroids_neows_closest_approach
+                name: Closest Approach
+                icon: mdi:rocket-launch
+                tap_action:
+                  action: navigate
+                  navigation_path: /neo-watcher
+
+          # Closest NEO Approach Details
+          - type: markdown
+            content: |
+              ### 🔭 Next Close Approach
+              {% set closest_sensor = 'sensor.nasa_sky_hub_asteroids_neows_closest_approach' %}
+              {% set approaches = state_attr(closest_sensor, 'closest_approaches') | default([]) %}
+              {% if approaches %}
+                {% set closest = approaches[0] %}
+                **{{ closest.name }}**{% if closest.is_potentially_hazardous %} ⚠️{% endif %}
+                
+                - **Date:** {{ closest.close_approach_date }}
+                - **Distance:** {{ (closest.miss_distance_km / 1000) | round(2) }}k km ({{ closest.miss_distance_lunar | round(2) }} lunar)
+                - **Size:** {{ closest.estimated_diameter_min_km | round(2) }}-{{ closest.estimated_diameter_max_km | round(2) }} km
+                - **Velocity:** {{ (closest.relative_velocity_kmh / 1000) | round(1) }}k km/h
+              {% else %}
+                No close approaches in the next 7 days
+              {% endif %}

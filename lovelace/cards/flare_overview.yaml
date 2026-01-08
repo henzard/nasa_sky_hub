@@ -1,5 +1,6 @@
 # Space Weather Overview Card
 # Use this card in your dashboard to show at-a-glance space weather status
+# Uses standard Home Assistant cards (no HACS dependencies)
 type: entities
 title: Space Weather
 entities:
@@ -9,18 +10,3 @@ entities:
     tap_action:
       action: navigate
       navigation_path: /space-weather
-card_mod:
-  style: |
-    ha-card {
-      {% if is_state('sensor.nasa_sky_hub_space_weather_severity', 'quiet') %}
-        border-left: 4px solid rgb(76, 175, 80);
-      {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'elevated') %}
-        border-left: 4px solid rgb(255, 193, 7);
-      {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'storm') %}
-        border-left: 4px solid rgb(255, 152, 0);
-      {% elif is_state('sensor.nasa_sky_hub_space_weather_severity', 'severe') %}
-        border-left: 4px solid rgb(244, 67, 54);
-      {% else %}
-        border-left: 4px solid rgb(158, 158, 158);
-      {% endif %}
-    }

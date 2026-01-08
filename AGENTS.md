@@ -22,10 +22,12 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 ## When Making Changes
 
 1. Make code changes
-2. Update version in `manifest.json`
+2. Update version in `manifest.json` (e.g., 1.1.2)
 3. Test the change
 4. **ALWAYS commit immediately**: `git add . && git commit -m "feat: description"`
 5. **ALWAYS push immediately**: `git push`
+6. **ALWAYS create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
+7. **ALWAYS push tag**: `git push origin v{VERSION}` (HACS needs tags for version display)
 
 ## Critical: No Uncommitted Changes
 

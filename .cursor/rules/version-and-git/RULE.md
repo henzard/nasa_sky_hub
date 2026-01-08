@@ -13,6 +13,8 @@ alwaysApply: true
   - MINOR: New features (backward compatible)
   - PATCH: Bug fixes, small improvements
 - Update version in `manifest.json` before every commit that changes code
+- **Create git tag** after pushing: `git tag v{VERSION} -m "Version {VERSION}: {description}"`
+- **Push tag**: `git push origin v{VERSION}` (HACS uses tags for version display)
 
 ## Git Workflow
 
@@ -66,11 +68,21 @@ Before committing:
 
 ```bash
 # 1. Make changes
-# 2. Update version in manifest.json
+# 2. Update version in manifest.json (e.g., 1.1.2)
 # 3. Stage changes
 git add .
 # 4. Commit with clear message
 git commit -m "feat: add comprehensive logging to coordinators"
 # 5. Push immediately
 git push
+# 6. Create and push git tag (for HACS version display)
+git tag v1.1.2 -m "Version 1.1.2: add comprehensive logging to coordinators"
+git push origin v1.1.2
 ```
+
+## HACS Version Display
+
+HACS displays versions from git tags, not manifest.json. Always create a tag:
+- Tag format: `v{VERSION}` (e.g., `v1.1.2`)
+- Tag message: `"Version {VERSION}: {description}"`
+- Push tag: `git push origin v{VERSION}`

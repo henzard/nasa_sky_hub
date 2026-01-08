@@ -449,7 +449,17 @@ class APODSensor(BaseSensor):
         data = self.coordinator.data
         if data is None:
             return None
-        return data.get(self.entity_description.key)
+        key = self.entity_description.key
+        
+        if key == "date":
+            # For date device class, ensure we return YYYY-MM-DD format
+            date_str = data.get("date", "")
+            if date_str:
+                # Extract just the date part if it includes time
+                return date_str.split("T")[0] if "T" in date_str else date_str
+            return None
+        
+        return data.get(key)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

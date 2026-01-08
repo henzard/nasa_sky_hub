@@ -7,13 +7,20 @@ alwaysApply: true
 
 ## Version Bumping - CRITICAL FOR HACS
 
-- **Always bump version** in `custom_components/nasa_sky_hub/manifest.json` before committing changes
+- **Only bump version for code changes** - NOT for documentation, rules, or non-code files
+- **Bump version** in `custom_components/nasa_sky_hub/manifest.json` before committing code changes
 - Use semantic versioning: `MAJOR.MINOR.PATCH`
   - MAJOR: Breaking changes
   - MINOR: New features (backward compatible)
   - PATCH: Bug fixes, small improvements
-- Update version in `manifest.json` before every commit that changes code
-- **MANDATORY: Create git tag** after pushing: `git tag v{VERSION} -m "Version {VERSION}: {description}"`
+- **When to bump version:**
+  - ✅ Code changes in `custom_components/nasa_sky_hub/` (Python files)
+  - ✅ Changes to `manifest.json` itself (requirements, dependencies)
+  - ✅ Changes to `hacs.json` (HACS metadata)
+  - ❌ Documentation changes (`doc/`, `README.md`)
+  - ❌ Rule changes (`.cursor/rules/`, `AGENTS.md`)
+  - ❌ Lovelace dashboard/card changes (`lovelace/`)
+- **MANDATORY: Create git tag** after pushing code changes: `git tag v{VERSION} -m "Version {VERSION}: {description}"`
 - **MANDATORY: Push tag**: `git push origin v{VERSION}` (HACS REQUIRES tags for version display)
 - **Version in manifest.json MUST match git tag** (e.g., manifest "1.1.4" = tag "v1.1.4")
 
@@ -67,12 +74,26 @@ Without git tags:
 ## Pre-Commit Checklist
 
 Before committing:
-1. ✅ Version bumped in `manifest.json`
+1. ✅ **Version bumped in `manifest.json`** (ONLY if code changed, NOT for docs/rules)
 2. ✅ Code follows HA standards
 3. ✅ No syntax errors
 4. ✅ All changes are intentional
 5. ✅ Commit message is clear and descriptive
 6. ✅ No temporary/compliance files created (check git status)
+
+## When to Bump Version
+
+**Bump version for:**
+- ✅ Code changes in `custom_components/nasa_sky_hub/*.py`
+- ✅ Changes to `manifest.json` (requirements, dependencies)
+- ✅ Changes to `hacs.json` (HACS metadata)
+
+**DO NOT bump version for:**
+- ❌ Documentation changes (`doc/`, `README.md`)
+- ❌ Rule changes (`.cursor/rules/`, `AGENTS.md`)
+- ❌ Lovelace dashboards/cards (`lovelace/`)
+- ❌ Git workflow improvements
+- ❌ Comments or formatting only
 
 ## Post-Push Checklist (MANDATORY)
 

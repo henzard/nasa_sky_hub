@@ -52,7 +52,7 @@ alwaysApply: true
 ## Testing Checklist
 
 Before committing:
-- [ ] Version bumped
+- [ ] Version bumped (ONLY if code changed, NOT for docs/rules)
 - [ ] All modules work independently
 - [ ] Rate limiting functions correctly
 - [ ] Entities created for enabled modules
@@ -64,12 +64,14 @@ Before committing:
 
 **After making ANY changes:**
 1. ✅ Check status: `git status`
-2. ✅ Update version in `manifest.json` (if code changed)
+2. ✅ **Update version in `manifest.json`** (ONLY if code changed in `custom_components/nasa_sky_hub/`)
+   - ✅ Code changes: bump version
+   - ❌ Documentation/rules: do NOT bump version
 3. ✅ Stage changes: `git add .`
 4. ✅ Commit immediately: `git commit -m "type: description"`
 5. ✅ Push immediately: `git push`
-6. ✅ **MANDATORY: Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
-7. ✅ **MANDATORY: Push tag**: `git push origin v{VERSION}`
+6. ✅ **MANDATORY: Create git tag** (ONLY if version was bumped): `git tag v{VERSION} -m "Version {VERSION}: description"`
+7. ✅ **MANDATORY: Push tag** (ONLY if version was bumped): `git push origin v{VERSION}`
 
 **Never leave uncommitted changes.** All file modifications must be committed, pushed, AND tagged in the same session.
 

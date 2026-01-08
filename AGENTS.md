@@ -6,7 +6,7 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 
 ## Key Principles
 
-1. **Always bump version** before committing code changes
+1. **Only bump version for code changes** - NOT for documentation, rules, or non-code files
 2. **Follow Home Assistant standards** - use coordinators, proper entity structure
 3. **HACS compatible** - maintain required files and structure
 4. **Value-focused documentation** - only document what adds value, keep it in `doc/` folder
@@ -16,18 +16,27 @@ This is a Home Assistant integration that combines NASA APIs, satellite tracking
 
 - **Integration code**: `custom_components/nasa_sky_hub/`
 - **Documentation**: `doc/` folder
-- **Version**: Update in `manifest.json` before every commit
+- **Version**: Update in `manifest.json` only for code changes (not docs/rules)
 - **Git**: Commit and push after each logical change
 
 ## When Making Changes
 
-1. Make code changes
+### For Code Changes (bump version):
+1. Make code changes in `custom_components/nasa_sky_hub/`
 2. Update version in `manifest.json` (e.g., 1.1.5)
 3. Test the change
 4. **ALWAYS commit immediately**: `git add . && git commit -m "feat: description"`
 5. **ALWAYS push immediately**: `git push`
 6. **MANDATORY: Create git tag**: `git tag v{VERSION} -m "Version {VERSION}: description"`
 7. **MANDATORY: Push tag**: `git push origin v{VERSION}`
+8. **MANDATORY: Create GitHub Release** (see HACS Version Display section)
+
+### For Documentation/Rules Changes (NO version bump):
+1. Make documentation or rule changes
+2. **DO NOT bump version** - these don't affect integration code
+3. **ALWAYS commit immediately**: `git add . && git commit -m "docs: description"`
+4. **ALWAYS push immediately**: `git push`
+5. **NO git tag or release needed** - these are not user-facing changes
 
 ## Critical: HACS Version Display
 

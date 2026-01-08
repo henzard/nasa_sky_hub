@@ -108,12 +108,12 @@ cards:
       - type: entities
         title: API Rate Limit
         entities:
-          - entity: sensor.nasa_api_rate_remaining
+          - entity: sensor.nasa_api_nasa_api_rate_limit_remaining
             name: Remaining Requests
             icon: mdi:api
             tap_action:
               action: more-info
-          - entity: sensor.nasa_api_rate_status
+          - entity: sensor.nasa_api_nasa_api_status
             name: API Status
             icon: mdi:api
             tap_action:

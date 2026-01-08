@@ -15,7 +15,7 @@ cards:
       - type: entities
         title: Sky Conditions
         entities:
-          - entity: binary_sensor.nasa_sky_hub_sky_astronomical_night
+          - entity: binary_sensor.nasa_sky_hub_astronomical_night
             name: Astronomical Night
             icon: mdi:weather-night
             tap_action:
@@ -25,7 +25,7 @@ cards:
             icon: mdi:brightness-3
             tap_action:
               action: more-info
-          - entity: binary_sensor.nasa_sky_hub_sky_good_stargazing_conditions
+          - entity: binary_sensor.nasa_sky_hub_good_stargazing_conditions
             name: Good Stargazing Conditions
             icon: mdi:star-circle
             tap_action:
@@ -34,13 +34,13 @@ cards:
       # ISS Status
       - type: conditional
         conditions:
-          - entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
+          - entity: binary_sensor.nasa_sky_hub_iss_overhead
             state: "on"
         card:
           type: entities
           title: 🛰️ ISS Overhead Now!
           entities:
-            - entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
+            - entity: binary_sensor.nasa_sky_hub_iss_overhead
               name: ISS Currently Overhead
               icon: mdi:satellite-variant
               tap_action:
@@ -50,7 +50,7 @@ cards:
       - type: entities
         title: Visible Constellations
         entities:
-          - entity: sensor.nasa_sky_hub_sky_visible_constellations
+          - entity: sensor.nasa_sky_hub_visible_constellations
             name: Constellations
             icon: mdi:star
 
@@ -58,17 +58,17 @@ cards:
       - type: entities
         title: Objects & Timing
         entities:
-          - entity: sensor.nasa_sky_hub_sky_brightest_object
+          - entity: sensor.nasa_sky_hub_brightest_object_overhead
             name: Brightest Object
             icon: mdi:star-circle
             tap_action:
               action: more-info
-          - entity: sensor.nasa_sky_hub_satellites_next_pass
+          - entity: sensor.nasa_sky_hub_next_satellite_pass
             name: Next Satellite Pass
             icon: mdi:satellite
             tap_action:
               action: more-info
-          - entity: sensor.nasa_sky_hub_sky_sidereal_time
+          - entity: sensor.nasa_sky_hub_sidereal_time
             name: Sidereal Time
             icon: mdi:clock-outline
             tap_action:

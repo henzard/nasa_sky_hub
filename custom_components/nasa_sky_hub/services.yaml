@@ -1,0 +1,82 @@
+refresh_all:
+  name: Refresh All
+  description: Refresh all data from all enabled modules
+  fields:
+    entry_id:
+      name: Config Entry ID
+      description: Optional config entry ID (uses first entry if not specified)
+      required: false
+      selector:
+        text:
+
+refresh_module:
+  name: Refresh Module
+  description: Refresh data for a specific module
+  fields:
+    entry_id:
+      name: Config Entry ID
+      description: Optional config entry ID (uses first entry if not specified)
+      required: false
+      selector:
+        text:
+    module:
+      name: Module Name
+      description: Name of the module to refresh
+      required: true
+      selector:
+        select:
+          options:
+            - space_weather
+            - apod
+            - earth_events
+            - satellites
+            - sky
+
+prefetch_apod_range:
+  name: Prefetch APOD Range
+  description: Prefetch APOD images for a date range
+  fields:
+    entry_id:
+      name: Config Entry ID
+      description: Optional config entry ID (uses first entry if not specified)
+      required: false
+      selector:
+        text:
+    start_date:
+      name: Start Date
+      description: Start date in ISO format (YYYY-MM-DD)
+      required: true
+      selector:
+        text:
+    end_date:
+      name: End Date
+      description: End date in ISO format (YYYY-MM-DD)
+      required: true
+      selector:
+        text:
+
+calculate_satellite_passes:
+  name: Calculate Satellite Passes
+  description: Calculate satellite passes for a time range
+  fields:
+    entry_id:
+      name: Config Entry ID
+      description: Optional config entry ID (uses first entry if not specified)
+      required: false
+      selector:
+        text:
+    norad_id:
+      name: NORAD ID
+      description: NORAD catalog number of the satellite
+      required: true
+      selector:
+        number:
+    hours:
+      name: Hours
+      description: Number of hours to look ahead (default 24)
+      required: false
+      default: 24
+      selector:
+        number:
+          min: 1
+          max: 168

@@ -1,0 +1,17 @@
+{
+  "domain": "nasa_sky_hub",
+  "name": "NASA Sky Hub",
+  "codeowners": ["@yourusername"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/yourusername/nasa_sky_hub",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/yourusername/nasa_sky_hub/issues",
+  "requirements": [
+    "aiohttp>=3.8.0",
+    "pyephem>=4.1",
+    "skyfield>=1.42"
+  ],
+  "version": "1.0.0"
+}

@@ -1,0 +1,99 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "NASA Sky Hub Setup",
+        "description": "Enter your NASA API key. Get a free key at {api_key_url}",
+        "data": {
+          "api_key": "NASA API Key"
+        },
+        "data_description": {
+          "api_key": "Enter your NASA API key (or DEMO_KEY for testing)"
+        }
+      },
+      "modules": {
+        "title": "Select Modules",
+        "description": "Choose which modules to enable. You can change this later in options.",
+        "data": {
+          "modules": "Enabled Modules",
+          "profile": "Rate Limit Profile"
+        }
+      },
+      "location": {
+        "title": "Set Location",
+        "description": "Set your location for satellite tracking and sky calculations.",
+        "data": {
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    },
+    "error": {
+      "api_key_required": "API key is required",
+      "cannot_connect": "Unable to connect to NASA API",
+      "invalid_auth": "Invalid API key",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "NASA Sky Hub is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "NASA Sky Hub Options",
+        "description": "Configure polling intervals for each module.",
+        "data": {
+          "space_weather_interval": "Space Weather Interval (seconds)",
+          "apod_interval": "APOD Interval (seconds)",
+          "satellites_interval": "Satellites Interval (seconds)",
+          "sky_interval": "Sky Visibility Interval (seconds)"
+        }
+      }
+    }
+  },
+  "services": {
+    "refresh_all": {
+      "name": "Refresh All",
+      "description": "Refresh all data from all enabled modules"
+    },
+    "refresh_module": {
+      "name": "Refresh Module",
+      "description": "Refresh data for a specific module",
+      "fields": {
+        "module": {
+          "name": "Module",
+          "description": "Name of the module to refresh"
+        }
+      }
+    },
+    "prefetch_apod_range": {
+      "name": "Prefetch APOD Range",
+      "description": "Prefetch APOD images for a date range",
+      "fields": {
+        "start_date": {
+          "name": "Start Date",
+          "description": "Start date in ISO format (YYYY-MM-DD)"
+        },
+        "end_date": {
+          "name": "End Date",
+          "description": "End date in ISO format (YYYY-MM-DD)"
+        }
+      }
+    },
+    "calculate_satellite_passes": {
+      "name": "Calculate Satellite Passes",
+      "description": "Calculate satellite passes for a time range",
+      "fields": {
+        "norad_id": {
+          "name": "NORAD ID",
+          "description": "NORAD catalog number of the satellite"
+        },
+        "hours": {
+          "name": "Hours",
+          "description": "Number of hours to look ahead"
+        }
+      }
+    }
+  }
+}

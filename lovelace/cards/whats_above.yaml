@@ -1,0 +1,45 @@
+# "What's Above Me Now" Card
+# Shows current sky conditions and visible objects
+type: vertical-stack
+cards:
+  - type: markdown
+    content: |
+      ## 🌌 What's Above Me Now
+    card_mod:
+      style: |
+        ha-card {
+          background: transparent;
+          box-shadow: none;
+        }
+
+  - type: grid
+    square: false
+    columns: 2
+    cards:
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.nasa_sky_hub_iss_overhead
+        name: ISS
+        icon: mdi:satellite-variant
+        tap_action:
+          action: more-info
+
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_brightest_object_overhead
+        name: Brightest
+        icon: mdi:star-circle
+        tap_action:
+          action: more-info
+
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_visible_constellations
+        name: Constellations
+        icon: mdi:star
+        tap_action:
+          action: more-info
+
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_next_satellite_pass
+        name: Next Pass
+        icon: mdi:satellite
+        tap_action:
+          action: more-info

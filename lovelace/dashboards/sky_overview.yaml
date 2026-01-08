@@ -1,0 +1,93 @@
+title: Night Sky Overview
+path: sky-overview
+icon: mdi:telescope
+panel: false
+cards:
+  - type: vertical-stack
+    cards:
+      # Header
+      - type: custom:mushroom-title-card
+        title: Night Sky Overview
+        subtitle: What's above you right now
+
+      # "What's Above Me Now" Card
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.nasa_sky_hub_astronomical_night
+        name: Astronomical Night
+        icon: mdi:weather-night
+        tap_action:
+          action: more-info
+        secondary_info: last-updated
+
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_sky_darkness_level
+        name: Sky Darkness
+        icon: mdi:brightness-3
+        tap_action:
+          action: more-info
+
+      - type: custom:mushroom-entity-card
+        entity: binary_sensor.nasa_sky_hub_good_stargazing_conditions
+        name: Good Stargazing Conditions
+        icon: mdi:star-circle
+        tap_action:
+          action: more-info
+
+      # ISS Status
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.nasa_sky_hub_iss_overhead
+            state: "on"
+        card:
+          type: custom:mushroom-entity-card
+          entity: binary_sensor.nasa_sky_hub_iss_overhead
+          name: 🛰️ ISS Overhead Now!
+          icon: mdi:satellite-variant
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(33, 150, 243, 0.1);
+                border-left: 4px solid rgb(33, 150, 243);
+              }
+          tap_action:
+            action: more-info
+
+      # Visible Constellations
+      - type: entities
+        title: Visible Constellations
+        entities:
+          - entity: sensor.nasa_sky_hub_visible_constellations
+            name: Constellations
+            icon: mdi:star
+
+      # Brightest Object
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_brightest_object_overhead
+        name: Brightest Object
+        icon: mdi:star-circle
+        tap_action:
+          action: more-info
+
+      # Next Satellite Pass
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_next_satellite_pass
+        name: Next Satellite Pass
+        icon: mdi:satellite
+        tap_action:
+          action: more-info
+
+      # Sidereal Time
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_sidereal_time
+        name: Sidereal Time
+        icon: mdi:clock-outline
+        tap_action:
+          action: more-info
+
+      # Satellite Count
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_satellites_overhead
+        name: Satellites Overhead
+        icon: mdi:satellite-variant
+        tap_action:
+          action: more-info

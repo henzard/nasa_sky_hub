@@ -1,0 +1,53 @@
+title: Earth & Space Events
+path: earth-events
+icon: mdi:earth
+panel: false
+cards:
+  - type: vertical-stack
+    cards:
+      # Header
+      - type: custom:mushroom-title-card
+        title: Earth & Space Events
+        subtitle: Natural events and space discoveries
+
+      # APOD Showcase
+      - type: picture-elements
+        image: entity:camera.nasa_sky_hub_apod
+        elements:
+          - type: state-label
+            entity: sensor.nasa_sky_hub_apod_title
+            style:
+              top: 10%
+              left: 5%
+              font-size: 1.2em
+              font-weight: bold
+              color: white
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.8)
+          - type: state-label
+            entity: sensor.nasa_sky_hub_apod_date
+            style:
+              top: 15%
+              left: 5%
+              font-size: 0.9em
+              color: white
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.8)
+          - type: state-badge
+            entity: sensor.nasa_sky_hub_space_weather_severity
+            style:
+              top: 10%
+              right: 5%
+              background-color: rgba(0,0,0,0.5)
+              border-radius: 8px
+              padding: 8px
+        tap_action:
+          action: more-info
+          entity: camera.nasa_sky_hub_apod
+
+      # Space Weather Badge on APOD
+      - type: custom:mushroom-entity-card
+        entity: sensor.nasa_sky_hub_space_weather_severity
+        name: Current Space Weather
+        icon: mdi:weather-lightning
+        tap_action:
+          action: navigate
+          navigation_path: /space-weather

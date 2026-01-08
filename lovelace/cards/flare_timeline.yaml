@@ -1,0 +1,54 @@
+# Solar Flare Timeline Chart Card
+# Shows flare activity over the last 72 hours
+type: custom:apexcharts-card
+title: Solar Flare Activity (72h)
+apex_config:
+  chart:
+    type: line
+    height: 300
+    toolbar:
+      show: false
+  xaxis:
+    type: datetime
+    title:
+      text: Time
+  yaxis:
+    title:
+      text: Flare Intensity
+  stroke:
+    curve: smooth
+    width: 2
+  markers:
+    size: 4
+  colors:
+    - '#ff6b6b'
+series:
+  - entity: sensor.nasa_sky_hub_space_weather_severity
+    name: Flare Intensity
+    type: line
+    data_generator: |
+      const flares = entity.attributes.flares || [];
+      const now = new Date().getTime();
+      const threeDaysAgo = now - (72 * 60 * 60 * 1000);
+      
+      return flares
+        .filter(flare => {
+          const flareTime = new Date(flare.beginTime).getTime();
+          return flareTime >= threeDaysAgo;
+        })
+        .map(flare => {
+          const time = new Date(flare.beginTime).getTime();
+          const classType = flare.classType || 'C';
+          let intensity = 0;
+          
+          if (classType.startsWith('X')) {
+            intensity = 3 + parseFloat(classType.substring(1)) / 10;
+          } else if (classType.startsWith('M')) {
+            intensity = 2 + parseFloat(classType.substring(1)) / 10;
+          } else if (classType.startsWith('C')) {
+            intensity = 1 + parseFloat(classType.substring(1)) / 10;
+          }
+          
+          return [time, intensity];
+        })
+        .sort((a, b) => a[0] - b[0]);

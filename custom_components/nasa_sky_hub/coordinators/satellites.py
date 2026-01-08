@@ -42,6 +42,8 @@ class SatelliteCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch satellite tracking data."""
         try:
+            # Ensure ephemeris is loaded (in executor to avoid blocking)
+            await self.tracker._ensure_eph_loaded(self.hass)
             # Update TLEs if needed (cache for 24 hours)
             await self.tracker.update_tles_if_needed()
 

@@ -24,8 +24,18 @@ class SatelliteTracker:
         self.tles: dict[int, tuple[str, str]] = {}
         self.tle_update_time: datetime | None = None
         self.ts = load.timescale()
-        self.eph = load("de421.bsp")
+        self.eph: Any = None  # Will be loaded lazily in executor
         self.observer = wgs84.latlon(latitude, longitude, elevation_m=elevation)
+        self._eph_loaded = False
+
+    async def _ensure_eph_loaded(self, hass: Any) -> None:
+        """Ensure ephemeris is loaded (in executor to avoid blocking)."""
+        if self._eph_loaded:
+            return
+        _LOGGER.debug("Loading ephemeris file in executor")
+        self.eph = await hass.async_add_executor_job(load, "de421.bsp")
+        self._eph_loaded = True
+        _LOGGER.debug("Ephemeris file loaded")
 
     async def update_tles_if_needed(self, force: bool = False) -> None:
         """Update TLE data if needed (cache for 24 hours)."""
@@ -83,8 +93,13 @@ class SatelliteTracker:
                 alt, az, distance = topocentric.altaz()
 
                 if alt.degrees >= min_elevation:
-                    # Check if satellite is sunlit
-                    is_sunlit = self._is_sunlit(sat, t)
+                    # Check if satellite is sunlit (simplified - always True if eph not loaded)
+                    is_sunlit = True
+                    if self.eph:
+                        try:
+                            is_sunlit = self._is_sunlit(sat, t)
+                        except Exception:
+                            is_sunlit = True
 
                     visible.append({
                         "norad_id": norad_id,
@@ -102,6 +117,8 @@ class SatelliteTracker:
 
     def _is_sunlit(self, sat: EarthSatellite, t: Any) -> bool:
         """Check if satellite is sunlit."""
+        if not self.eph:
+            return True
         try:
             # Get satellite position
             sat_pos = sat.at(t)

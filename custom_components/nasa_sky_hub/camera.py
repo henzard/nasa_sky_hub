@@ -49,9 +49,11 @@ class APODCamera(CoordinatorEntity, Camera):
 
     def __init__(self, coordinator: Any) -> None:
         """Initialize APOD camera."""
-        super().__init__(coordinator)
+        CoordinatorEntity.__init__(self, coordinator)
+        Camera.__init__(self)
         self._attr_name = "NASA Sky Hub APOD"
         self._attr_unique_id = "nasa_sky_hub_apod"
+        self._webrtc_provider = None  # Required by Camera base class
 
     @property
     def entity_picture(self) -> str | None:

@@ -20,8 +20,18 @@ class SkyCalculator:
         self.longitude = longitude
         self.elevation = elevation
         self.ts = load.timescale()
-        self.eph = load("de421.bsp")
+        self.eph: Any = None  # Will be loaded lazily in executor
         self.observer = wgs84.latlon(latitude, longitude, elevation_m=elevation)
+        self._eph_loaded = False
+
+    async def _ensure_eph_loaded(self, hass: Any) -> None:
+        """Ensure ephemeris is loaded (in executor to avoid blocking)."""
+        if self._eph_loaded:
+            return
+        _LOGGER.debug("Loading ephemeris file in executor")
+        self.eph = await hass.async_add_executor_job(load, "de421.bsp")
+        self._eph_loaded = True
+        _LOGGER.debug("Ephemeris file loaded")
 
         # Bright stars (simplified catalog)
         self.bright_stars = [
@@ -57,6 +67,8 @@ class SkyCalculator:
 
     def is_astronomical_night(self, time: datetime) -> bool:
         """Check if it's astronomical night (sun 18° below horizon)."""
+        if not self.eph:
+            return False
         t = self.ts.from_datetime(time)
         astro = self.eph["sun"] + self.observer
         sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
@@ -64,6 +76,8 @@ class SkyCalculator:
 
     def get_darkness_level(self, time: datetime) -> float:
         """Get darkness level (0.0 = daylight, 1.0 = darkest)."""
+        if not self.eph:
+            return 0.0
         t = self.ts.from_datetime(time)
         astro = self.eph["sun"] + self.observer
         sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
@@ -113,6 +127,8 @@ class SkyCalculator:
         max_mag = float("inf")
 
         # Check moon
+        if not self.eph:
+            return {"name": "None", "type": "none", "magnitude": 0}
         moon = self.eph["moon"]
         moon_alt, _, _ = self.observer.at(t).observe(moon).apparent().altaz()
         if moon_alt.degrees > 0:

@@ -55,8 +55,9 @@ class NASAApiClient:
 
         if params is None:
             params = {}
-        params["api_key"] = "***" if self.api_key != "DEMO_KEY" else "DEMO_KEY"
-        _LOGGER.debug("Request params: %s", {k: v for k, v in params.items() if k != "api_key"})
+        # Use actual API key for request, mask in logs
+        params["api_key"] = self.api_key
+        _LOGGER.debug("Request params: %s", {k: ("***" if k == "api_key" and v != "DEMO_KEY" else v) for k, v in params.items()})
 
         session = await self._get_session()
         url = f"{NASA_API_BASE}{endpoint}"

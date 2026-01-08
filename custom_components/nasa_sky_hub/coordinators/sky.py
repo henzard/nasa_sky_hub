@@ -39,6 +39,8 @@ class SkyCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Calculate sky visibility data."""
         try:
+            # Ensure ephemeris is loaded (in executor to avoid blocking)
+            await self.calculator._ensure_eph_loaded(self.hass)
             now = datetime.now()
 
             # Calculate various sky conditions

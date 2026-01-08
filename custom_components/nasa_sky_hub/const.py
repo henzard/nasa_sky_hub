@@ -17,12 +17,18 @@ NEO_ENDPOINT = f"{NASA_API_BASE}/neo/rest/v1"
 CELESTRAK_BASE = "https://celestrak.org/NORAD/elements"
 CELESTRAK_TLE_URL = f"{CELESTRAK_BASE}/stations.txt"
 
+# SSD/CNEOS endpoints (JPL, no API key required)
+SSD_API_BASE = "https://ssd-api.jpl.nasa.gov"
+SSD_SENTRY_ENDPOINT = f"{SSD_API_BASE}/sentry.api"
+SSD_CAD_ENDPOINT = f"{SSD_API_BASE}/cad.api"
+
 # Module names
 MODULE_SPACE_WEATHER = "space_weather"
 MODULE_APOD = "apod"
 MODULE_EARTH_EVENTS = "earth_events"
 MODULE_SATELLITES = "satellites"
 MODULE_SKY = "sky"
+MODULE_ASTEROIDS = "asteroids"
 
 ALL_MODULES = [
     MODULE_SPACE_WEATHER,
@@ -30,6 +36,7 @@ ALL_MODULES = [
     MODULE_EARTH_EVENTS,
     MODULE_SATELLITES,
     MODULE_SKY,
+    MODULE_ASTEROIDS,
 ]
 
 # Rate limit profiles
@@ -45,6 +52,7 @@ DEFAULT_INTERVALS = {
         MODULE_EARTH_EVENTS: 7200,  # 2 hours
         MODULE_SATELLITES: 300,  # 5 minutes
         MODULE_SKY: 600,  # 10 minutes
+        MODULE_ASTEROIDS: 3600,  # 1 hour
     },
     PROFILE_BALANCED: {
         MODULE_SPACE_WEATHER: 1800,  # 30 minutes
@@ -52,6 +60,7 @@ DEFAULT_INTERVALS = {
         MODULE_EARTH_EVENTS: 3600,  # 1 hour
         MODULE_SATELLITES: 180,  # 3 minutes
         MODULE_SKY: 300,  # 5 minutes
+        MODULE_ASTEROIDS: 1800,  # 30 minutes
     },
     PROFILE_AGGRESSIVE: {
         MODULE_SPACE_WEATHER: 900,  # 15 minutes
@@ -59,6 +68,7 @@ DEFAULT_INTERVALS = {
         MODULE_EARTH_EVENTS: 1800,  # 30 minutes
         MODULE_SATELLITES: 60,  # 1 minute
         MODULE_SKY: 180,  # 3 minutes
+        MODULE_ASTEROIDS: 900,  # 15 minutes
     },
 }
 

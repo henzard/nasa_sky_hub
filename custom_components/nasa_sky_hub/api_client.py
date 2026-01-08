@@ -6,7 +6,7 @@ from typing import Any
 
 import aiohttp
 
-from .const import EONET_API_BASE, NASA_API_BASE
+from .const import EONET_API_BASE, NASA_API_BASE, SSD_API_BASE
 from .rate_limiter import RateLimiter
 
 _LOGGER = logging.getLogger(__name__)
@@ -151,3 +151,102 @@ class NASAApiClient:
             "end_date": end_date,
         }
         return await self._request("GET", "/neo/rest/v1/feed", params)
+
+    async def _ssd_request(
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Make a request to SSD/CNEOS API (no API key required)."""
+        _LOGGER.debug("Making SSD API request: GET %s", endpoint)
+        # SSD APIs don't use rate limiting (they're separate from api.nasa.gov)
+        # But we'll still use the session for connection pooling
+        
+        if params is None:
+            params = {}
+        
+        session = await self._get_session()
+        url = f"{SSD_API_BASE}{endpoint}"
+        
+        try:
+            _LOGGER.debug("SSD request URL: %s", url)
+            _LOGGER.debug("SSD request params: %s", params)
+            async with session.request("GET", url, params=params) as response:
+                _LOGGER.debug("SSD response status: %s", response.status)
+                
+                if response.status == 429:
+                    _LOGGER.warning("Rate limit 429 received for %s", endpoint)
+                    raise NASAApiError("Rate limit exceeded")
+                
+                response.raise_for_status()
+                data = await response.json()
+                _LOGGER.debug("SSD response received, data type: %s", type(data).__name__)
+                return data
+                
+        except aiohttp.ClientError as err:
+            _LOGGER.error("SSD API request failed for %s: %s", endpoint, err)
+            raise NASAApiError(f"SSD API request failed: {err}") from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error in SSD API request to %s", endpoint)
+            raise NASAApiError(f"Unexpected error: {err}") from err
+
+    async def get_sentry_summary(
+        self,
+        ip_min: float | None = None,
+        ps_min: int | None = None,
+        h_max: float | None = None,
+    ) -> dict[str, Any]:
+        """Get Sentry impact risk summary (Mode S).
+        
+        Returns summary data for all Sentry-tracked asteroids with impact risk.
+        """
+        params = {}
+        if ip_min is not None:
+            params["ip-min"] = ip_min
+        if ps_min is not None:
+            params["ps-min"] = ps_min
+        if h_max is not None:
+            params["h-max"] = h_max
+        return await self._ssd_request("/sentry.api", params)
+
+    async def get_sentry_object(self, designation: str) -> dict[str, Any]:
+        """Get Sentry impact risk details for a specific asteroid (Mode O).
+        
+        Args:
+            designation: Asteroid designation (e.g., "99942" or "2000 SG344")
+        """
+        params = {"des": designation}
+        return await self._ssd_request("/sentry.api", params)
+
+    async def get_cad_close_approaches(
+        self,
+        date_min: str | None = None,
+        date_max: str | None = None,
+        dist_max: str | None = None,
+        body: str = "Earth",
+        neo: bool = True,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        """Get Close Approach Data (CAD) for asteroids/comets.
+        
+        Args:
+            date_min: Minimum date (YYYY-MM-DD or "now")
+            date_max: Maximum date (YYYY-MM-DD or "+60" for 60 days)
+            dist_max: Maximum approach distance (e.g., "0.05" AU or "10LD")
+            body: Target body (Earth, Moon, Mars, etc.)
+            neo: Filter to NEOs only
+            limit: Limit number of results
+        """
+        params = {}
+        if date_min:
+            params["date-min"] = date_min
+        if date_max:
+            params["date-max"] = date_max
+        if dist_max:
+            params["dist-max"] = dist_max
+        params["body"] = body
+        if neo:
+            params["neo"] = "true"
+        if limit:
+            params["limit"] = limit
+        return await self._ssd_request("/cad.api", params)

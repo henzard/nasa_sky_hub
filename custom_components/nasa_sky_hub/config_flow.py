@@ -16,6 +16,7 @@ from .const import (
     ALL_MODULES,
     DOMAIN,
     MODULE_APOD,
+    MODULE_ASTEROIDS,
     MODULE_EARTH_EVENTS,
     MODULE_SATELLITES,
     MODULE_SKY,
@@ -119,6 +120,7 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             MODULE_EARTH_EVENTS: "Earth Events (EONET)",
                             MODULE_SATELLITES: "Satellite Tracking",
                             MODULE_SKY: "Sky Visibility",
+                            MODULE_ASTEROIDS: "Asteroid Tracking (Sentry & CAD)",
                         }
                     ),
                     vol.Required(

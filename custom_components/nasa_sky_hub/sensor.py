@@ -16,8 +16,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MODULE_APOD, MODULE_SATELLITES, MODULE_SKY, MODULE_SPACE_WEATHER
+from .const import DOMAIN, MODULE_APOD, MODULE_ASTEROIDS, MODULE_SATELLITES, MODULE_SKY, MODULE_SPACE_WEATHER
 from .coordinators.apod import APODCoordinator
+from .coordinators.asteroids import CADCoordinator, SentryCoordinator
 from .coordinators.satellites import SatelliteCoordinator
 from .coordinators.sky import SkyCoordinator
 from .coordinators.space_weather import SpaceWeatherCoordinator
@@ -90,6 +91,37 @@ SKY_SENSORS = [
         key="sidereal_time",
         name="Sidereal Time",
         icon="mdi:clock-outline",
+    ),
+]
+
+ASTEROID_SENTRY_SENSORS = [
+    SensorEntityDescription(
+        key="total_threats",
+        name="Asteroid Impact Threats",
+        icon="mdi:asteroid",
+        native_unit_of_measurement="threats",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="max_palermo_scale",
+        name="Highest Palermo Scale",
+        icon="mdi:alert-circle",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+]
+
+ASTEROID_CAD_SENSORS = [
+    SensorEntityDescription(
+        key="total_approaches",
+        name="Close Approaches (60 days)",
+        icon="mdi:orbit",
+        native_unit_of_measurement="approaches",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="next_approach",
+        name="Next Close Approach",
+        icon="mdi:rocket-launch",
     ),
 ]
 
@@ -215,6 +247,46 @@ async def async_setup_entry(
             for desc in SKY_SENSORS
         )
         data["coordinators"][MODULE_SKY] = coordinator
+
+    # Asteroid sensors (Sentry and CAD)
+    if MODULE_ASTEROIDS in enabled_modules:
+        _LOGGER.info("Setting up Asteroid sensors")
+        
+        # Sentry coordinator (impact risk)
+        sentry_coordinator = SentryCoordinator(
+            hass,
+            api_client,
+            update_interval=1800,
+        )
+        try:
+            await sentry_coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("Sentry coordinator refreshed, data: %s", sentry_coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh Sentry coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
+        entities.extend(
+            SentrySensor(sentry_coordinator, desc)
+            for desc in ASTEROID_SENTRY_SENSORS
+        )
+        data["coordinators"][f"{MODULE_ASTEROIDS}_sentry"] = sentry_coordinator
+        
+        # CAD coordinator (close approaches)
+        cad_coordinator = CADCoordinator(
+            hass,
+            api_client,
+            update_interval=1800,
+        )
+        try:
+            await cad_coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("CAD coordinator refreshed, data: %s", cad_coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh CAD coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
+        entities.extend(
+            CADSensor(cad_coordinator, desc)
+            for desc in ASTEROID_CAD_SENSORS
+        )
+        data["coordinators"][f"{MODULE_ASTEROIDS}_cad"] = cad_coordinator
 
     _LOGGER.info("Created %s sensor entities", len(entities))
     async_add_entities(entities)
@@ -368,6 +440,120 @@ class SkySensor(BaseSensor):
             attrs["brightest_object"] = data.get("brightest_object", {})
         elif self.entity_description.key == "visible_constellations":
             attrs["constellations"] = data.get("visible_constellations", [])
+        return attrs
+
+
+class SentrySensor(BaseSensor):
+    """Sentry impact risk sensor."""
+
+    @property
+    def native_value(self) -> str | int | float | None:
+        """Return sensor value."""
+        data = self.coordinator.data
+        if data is None:
+            return None
+        key = self.entity_description.key
+
+        if key == "total_threats":
+            return data.get("total_threats", 0)
+        elif key == "max_palermo_scale":
+            return data.get("max_palermo_scale", None)
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra state attributes."""
+        data = self.coordinator.data
+        if data is None:
+            return {}
+        
+        attrs = {
+            "last_update": data.get("last_update"),
+        }
+        
+        highest_risk = data.get("highest_risk")
+        if highest_risk:
+            attrs["highest_risk_object"] = {
+                "designation": highest_risk.get("des"),
+                "fullname": highest_risk.get("fullname"),
+                "palermo_scale": highest_risk.get("ps_cum"),
+                "impact_probability": highest_risk.get("ip"),
+                "diameter_km": highest_risk.get("diameter"),
+                "last_observation": highest_risk.get("last_obs"),
+            }
+        
+        # Include top 5 threats
+        objects = data.get("objects", [])
+        if objects:
+            attrs["top_threats"] = [
+                {
+                    "designation": obj.get("des"),
+                    "fullname": obj.get("fullname"),
+                    "palermo_scale": obj.get("ps_cum"),
+                    "impact_probability": obj.get("ip"),
+                }
+                for obj in objects[:5]
+            ]
+        
+        return attrs
+
+
+class CADSensor(BaseSensor):
+    """Close Approach Data sensor."""
+
+    @property
+    def native_value(self) -> str | int | None:
+        """Return sensor value."""
+        data = self.coordinator.data
+        if data is None:
+            return None
+        key = self.entity_description.key
+
+        if key == "total_approaches":
+            return data.get("total_approaches", 0)
+        elif key == "next_approach":
+            next_approach = data.get("next_approach")
+            if next_approach:
+                return next_approach.get("approach_date")
+            return None
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra state attributes."""
+        data = self.coordinator.data
+        if data is None:
+            return {}
+        
+        attrs = {
+            "last_update": data.get("last_update"),
+        }
+        
+        next_approach = data.get("next_approach")
+        if next_approach:
+            attrs["next_approach"] = {
+                "designation": next_approach.get("designation"),
+                "approach_date": next_approach.get("approach_date"),
+                "distance_au": next_approach.get("distance_au"),
+                "distance_min_au": next_approach.get("distance_min_au"),
+                "distance_max_au": next_approach.get("distance_max_au"),
+                "velocity_km_s": next_approach.get("velocity_km_s"),
+                "absolute_magnitude": next_approach.get("absolute_magnitude"),
+            }
+        
+        # Include upcoming approaches
+        approaches = data.get("approaches", [])
+        if approaches:
+            attrs["upcoming_approaches"] = [
+                {
+                    "designation": app.get("designation"),
+                    "approach_date": app.get("approach_date"),
+                    "distance_au": app.get("distance_au"),
+                    "velocity_km_s": app.get("velocity_km_s"),
+                }
+                for app in approaches[:10]
+            ]
+        
         return attrs
 
 

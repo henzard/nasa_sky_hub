@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -47,8 +47,8 @@ class SatelliteCoordinator(DataUpdateCoordinator):
             # Update TLEs if needed (cache for 24 hours)
             await self.tracker.update_tles_if_needed()
 
-            # Get current satellite positions
-            now = datetime.now()
+            # Get current satellite positions (use UTC for consistency)
+            now = datetime.now(timezone.utc)
             satellites = await self.tracker.get_visible_satellites(now)
 
             # Find ISS specifically

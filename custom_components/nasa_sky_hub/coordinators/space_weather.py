@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -36,7 +36,7 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
         """Fetch space weather data."""
         _LOGGER.info("Fetching space weather data")
         try:
-            end_date = datetime.now()
+            end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=3)
             _LOGGER.debug("Fetching data from %s to %s", start_date.date(), end_date.date())
 
@@ -55,10 +55,11 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
             )
 
             # Process flares
+            now_utc = datetime.now(timezone.utc)
             recent_flares = [
                 f for f in flares
                 if datetime.fromisoformat(f.get("beginTime", "").replace("Z", "+00:00")) >
-                (datetime.now() - timedelta(hours=24))
+                (now_utc - timedelta(hours=24))
             ]
 
             # Determine severity
@@ -68,8 +69,8 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
 
             active_storms = [
                 s for s in storms
-                if datetime.fromisoformat(s.get("startTime", "").replace("Z", "+00:00")) <= datetime.now()
-                and datetime.fromisoformat(s.get("endTime", "").replace("Z", "+00:00")) >= datetime.now()
+                if datetime.fromisoformat(s.get("startTime", "").replace("Z", "+00:00")) <= now_utc
+                and datetime.fromisoformat(s.get("endTime", "").replace("Z", "+00:00")) >= now_utc
             ]
 
             if x_flares or (active_storms and any(s.get("allKpIndex", [{}])[0].get("kpIndex", 0) >= 8 for s in active_storms)):
@@ -85,7 +86,7 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
                 "flares": recent_flares,
                 "cmes": cmes,
                 "storms": active_storms,
-                "last_update": datetime.now().isoformat(),
+                "last_update": now_utc.isoformat(),
             }
             _LOGGER.info("Space weather data fetched: severity=%s, flares_24h=%s", severity, len(recent_flares))
             return result

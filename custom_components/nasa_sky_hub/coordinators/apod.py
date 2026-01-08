@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -43,7 +43,7 @@ class APODCoordinator(DataUpdateCoordinator):
                 "url": data.get("url", ""),
                 "hdurl": data.get("hdurl", ""),
                 "media_type": data.get("media_type", "image"),
-                "last_update": datetime.now().isoformat(),
+                "last_update": datetime.now(timezone.utc).isoformat(),
             }
         except NASAApiError as err:
             raise UpdateFailed(f"Error fetching APOD data: {err}") from err

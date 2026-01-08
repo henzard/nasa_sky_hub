@@ -224,12 +224,12 @@ class SatelliteBinarySensor(BaseBinarySensor):
             next_pass = data.get("next_pass")
             if next_pass:
                 # Check if pass is soon (within 1 hour)
-                from datetime import datetime
+                from datetime import datetime, timezone
                 rise_time_str = next_pass.get("rise_time")
                 if rise_time_str:
                     try:
                         rise_time = datetime.fromisoformat(rise_time_str.replace("Z", "+00:00"))
-                        time_until = (rise_time - datetime.now()).total_seconds()
+                        time_until = (rise_time - datetime.now(timezone.utc)).total_seconds()
                         return 0 < time_until < 3600  # Within next hour
                     except Exception:
                         pass

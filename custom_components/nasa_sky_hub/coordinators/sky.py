@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -41,7 +41,7 @@ class SkyCoordinator(DataUpdateCoordinator):
         try:
             # Ensure ephemeris is loaded (in executor to avoid blocking)
             await self.calculator._ensure_eph_loaded(self.hass)
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
 
             # Calculate various sky conditions
             is_astronomical_night = self.calculator.is_astronomical_night(now)

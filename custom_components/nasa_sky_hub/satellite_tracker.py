@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import aiohttp
@@ -42,7 +42,7 @@ class SatelliteTracker:
         if (
             not force
             and self.tle_update_time
-            and datetime.now() - self.tle_update_time < timedelta(hours=24)
+            and datetime.now(timezone.utc) - self.tle_update_time < timedelta(hours=24)
         ):
             return
 
@@ -67,7 +67,7 @@ class SatelliteTracker:
                     continue
 
             self.tles = tles
-            self.tle_update_time = datetime.now()
+            self.tle_update_time = datetime.now(timezone.utc)
             _LOGGER.info("Updated TLE data: %s satellites", len(self.tles))
 
         except Exception as err:
@@ -83,6 +83,9 @@ class SatelliteTracker:
             await self.update_tles_if_needed()
 
         visible = []
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
 
         for norad_id, (line1, line2) in self.tles.items():
@@ -143,6 +146,10 @@ class SatelliteTracker:
             return None
 
         try:
+            # Ensure start_time is timezone-aware (Skyfield requirement)
+            if start_time.tzinfo is None:
+                start_time = start_time.replace(tzinfo=timezone.utc)
+            
             line1, line2 = self.tles[norad_id]
             sat = EarthSatellite(line1, line2, name=f"SAT-{norad_id}", ts=self.ts)
 

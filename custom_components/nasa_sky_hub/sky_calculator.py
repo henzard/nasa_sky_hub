@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from math import acos, cos, degrees, radians, sin
 from typing import Any
 
@@ -59,6 +59,9 @@ class SkyCalculator:
 
     def get_sidereal_time(self, time: datetime) -> str:
         """Calculate local sidereal time."""
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         lst = self.observer.lst_hours_at(t)
         hours = int(lst)
@@ -69,6 +72,9 @@ class SkyCalculator:
         """Check if it's astronomical night (sun 18° below horizon)."""
         if not self.eph:
             return False
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         astro = self.eph["sun"] + self.observer
         sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
@@ -78,6 +84,9 @@ class SkyCalculator:
         """Get darkness level (0.0 = daylight, 1.0 = darkest)."""
         if not self.eph:
             return 0.0
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         astro = self.eph["sun"] + self.observer
         sun_alt, _, _ = astro.at(t).observe(self.eph["earth"]).apparent().altaz()
@@ -101,6 +110,9 @@ class SkyCalculator:
     def get_visible_constellations(self, time: datetime) -> list[str]:
         """Get list of currently visible constellations."""
         visible = []
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
 
         for const in self.constellations:
@@ -122,6 +134,9 @@ class SkyCalculator:
 
     def get_brightest_object(self, time: datetime) -> dict[str, Any]:
         """Get brightest object currently visible."""
+        # Ensure time is timezone-aware (Skyfield requirement)
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=timezone.utc)
         t = self.ts.from_datetime(time)
         brightest = None
         max_mag = float("inf")

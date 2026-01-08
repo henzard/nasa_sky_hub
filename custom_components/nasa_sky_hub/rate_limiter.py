@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .const import (
@@ -34,16 +34,17 @@ class RateLimiter:
         """Acquire permission to make a request."""
         async with self._lock:
             # Check if we're in backoff
-            if self._backoff_until and datetime.now() < self._backoff_until:
-                wait_time = (self._backoff_until - datetime.now()).total_seconds()
+            now_utc = datetime.now(timezone.utc)
+            if self._backoff_until and now_utc < self._backoff_until:
+                wait_time = (self._backoff_until - now_utc).total_seconds()
                 _LOGGER.debug("Rate limiter in backoff, waiting %s seconds", wait_time)
                 await asyncio.sleep(wait_time)
                 self._backoff_until = None
 
             # Check remaining requests
             if self.remaining <= 0:
-                if self.reset_time and datetime.now() < self.reset_time:
-                    wait_time = (self.reset_time - datetime.now()).total_seconds()
+                if self.reset_time and now_utc < self.reset_time:
+                    wait_time = (self.reset_time - now_utc).total_seconds()
                     _LOGGER.warning(
                         "Rate limit exhausted, waiting %s seconds until reset",
                         wait_time,
@@ -87,7 +88,7 @@ class RateLimiter:
             if "X-RateLimit-Reset" in headers:
                 try:
                     reset_timestamp = int(headers["X-RateLimit-Reset"])
-                    self.reset_time = datetime.fromtimestamp(reset_timestamp)
+                    self.reset_time = datetime.fromtimestamp(reset_timestamp, tz=timezone.utc)
                 except (ValueError, TypeError):
                     pass
 
@@ -100,7 +101,7 @@ class RateLimiter:
             self._consecutive_429s += 1
             # Exponential backoff: 2^consecutive_429s minutes, max 60 minutes
             backoff_minutes = min(2 ** self._consecutive_429s, 60)
-            self._backoff_until = datetime.now() + timedelta(minutes=backoff_minutes)
+            self._backoff_until = datetime.now(timezone.utc) + timedelta(minutes=backoff_minutes)
             _LOGGER.warning(
                 "Rate limit 429 received, backing off for %s minutes",
                 backoff_minutes,
@@ -115,7 +116,7 @@ class RateLimiter:
             "profile": self.profile,
             "in_backoff": (
                 self._backoff_until is not None
-                and datetime.now() < self._backoff_until
+                and datetime.now(timezone.utc) < self._backoff_until
             ),
             "backoff_until": (
                 self._backoff_until.isoformat() if self._backoff_until else None

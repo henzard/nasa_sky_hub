@@ -16,7 +16,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MODULE_APOD, MODULE_ASTEROIDS, MODULE_SATELLITES, MODULE_SKY, MODULE_SPACE_WEATHER
+from .const import (
+    DOMAIN,
+    MODULE_APOD,
+    MODULE_ASTEROIDS,
+    MODULE_SATELLITES,
+    MODULE_SKY,
+    MODULE_SPACE_WEATHER,
+    DEFAULT_INTERVALS,
+    PROFILE_BALANCED,
+)
 from .coordinators.apod import APODCoordinator
 from .coordinators.asteroids import CADCoordinator, SentryCoordinator
 from .coordinators.neows import NeoWsCoordinator
@@ -346,7 +355,7 @@ async def async_setup_entry(
             hass,
             api_client,
             days_ahead=7,  # Default to 7 days ahead
-            update_interval=DEFAULT_UPDATE_INTERVALS[profile][MODULE_ASTEROIDS],
+            update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
         try:
             await neows_coordinator.async_config_entry_first_refresh()

@@ -92,11 +92,16 @@ async def async_setup_entry(
             api_client,
             update_interval=1800,
         )
-        await coordinator.async_config_entry_first_refresh()
+        try:
+            await coordinator.async_config_entry_first_refresh()
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SpaceWeatherBinarySensor(coordinator, desc)
             for desc in SPACE_WEATHER_BINARY_SENSORS
         )
+        data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
 
     # Satellite binary sensors
     if MODULE_SATELLITES in enabled_modules:
@@ -107,11 +112,16 @@ async def async_setup_entry(
             location,
             update_interval=180,
         )
-        await coordinator.async_config_entry_first_refresh()
+        try:
+            await coordinator.async_config_entry_first_refresh()
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SatelliteBinarySensor(coordinator, desc)
             for desc in SATELLITE_BINARY_SENSORS
         )
+        data["coordinators"][MODULE_SATELLITES] = coordinator
 
     # Sky binary sensors
     if MODULE_SKY in enabled_modules:
@@ -121,11 +131,16 @@ async def async_setup_entry(
             location,
             update_interval=300,
         )
-        await coordinator.async_config_entry_first_refresh()
+        try:
+            await coordinator.async_config_entry_first_refresh()
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SkyBinarySensor(coordinator, desc)
             for desc in SKY_BINARY_SENSORS
         )
+        data["coordinators"][MODULE_SKY] = coordinator
 
     async_add_entities(entities)
 

@@ -39,6 +39,14 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.data: dict[str, Any] = {}
         _LOGGER.debug("Config flow initialized")
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> NASASkyHubOptionsFlowHandler:
+        """Get the options flow handler."""
+        return NASASkyHubOptionsFlowHandler(config_entry)
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:

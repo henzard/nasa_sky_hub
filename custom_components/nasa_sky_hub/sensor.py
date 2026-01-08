@@ -142,8 +142,12 @@ async def async_setup_entry(
             api_client,
             update_interval=1800,
         )
-        await coordinator.async_config_entry_first_refresh()
-        _LOGGER.debug("Space Weather coordinator refreshed, data: %s", coordinator.data is not None)
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("Space Weather coordinator refreshed, data: %s", coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SpaceWeatherSensor(coordinator, desc)
             for desc in SPACE_WEATHER_SENSORS
@@ -159,8 +163,12 @@ async def async_setup_entry(
             api_client,
             update_interval=86400,
         )
-        await coordinator.async_config_entry_first_refresh()
-        _LOGGER.debug("APOD coordinator refreshed, data: %s", coordinator.data is not None)
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("APOD coordinator refreshed, data: %s", coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh APOD coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             APODSensor(coordinator, desc)
             for desc in APOD_SENSORS
@@ -176,8 +184,12 @@ async def async_setup_entry(
             location,
             update_interval=180,
         )
-        await coordinator.async_config_entry_first_refresh()
-        _LOGGER.debug("Satellite coordinator refreshed, data: %s", coordinator.data is not None)
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("Satellite coordinator refreshed, data: %s", coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SatelliteSensor(coordinator, desc)
             for desc in SATELLITE_SENSORS
@@ -192,8 +204,12 @@ async def async_setup_entry(
             location,
             update_interval=300,
         )
-        await coordinator.async_config_entry_first_refresh()
-        _LOGGER.debug("Sky coordinator refreshed, data: %s", coordinator.data is not None)
+        try:
+            await coordinator.async_config_entry_first_refresh()
+            _LOGGER.debug("Sky coordinator refreshed, data: %s", coordinator.data is not None)
+        except Exception as err:
+            _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
+            # Don't fail setup, coordinator will retry later
         entities.extend(
             SkySensor(coordinator, desc)
             for desc in SKY_SENSORS

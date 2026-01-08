@@ -35,7 +35,11 @@ async def async_setup_entry(
         api_client,
         update_interval=86400,
     )
-    await coordinator.async_config_entry_first_refresh()
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception as err:
+        _LOGGER.warning("Failed to refresh APOD coordinator on setup: %s", err)
+        # Don't fail setup, coordinator will retry later
 
     async_add_entities([APODCamera(coordinator)])
 

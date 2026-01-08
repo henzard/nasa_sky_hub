@@ -119,27 +119,27 @@ docker restart homeassistant
 ### Sensors
 
 - `sensor.nasa_sky_hub_space_weather_severity` - Current space weather severity
-- `sensor.nasa_sky_hub_solar_flares_24h` - Number of solar flares in last 24 hours
+- `sensor.nasa_sky_hub_space_weather_flares_24h` - Number of solar flares in last 24 hours
 - `sensor.nasa_sky_hub_apod_title` - APOD title
 - `sensor.nasa_sky_hub_apod_date` - APOD date
 - `sensor.nasa_sky_hub_satellites_overhead` - Number of satellites currently overhead
-- `sensor.nasa_sky_hub_next_satellite_pass` - Time of next satellite pass
-- `sensor.nasa_sky_hub_visible_constellations` - List of visible constellations
-- `sensor.nasa_sky_hub_brightest_object_overhead` - Brightest object currently visible
+- `sensor.nasa_sky_hub_satellites_next_pass` - Time of next satellite pass
+- `sensor.nasa_sky_hub_sky_visible_constellations` - List of visible constellations
+- `sensor.nasa_sky_hub_sky_brightest_object` - Brightest object currently visible
 - `sensor.nasa_sky_hub_sky_darkness_level` - Sky darkness level (0-100%)
-- `sensor.nasa_sky_hub_sidereal_time` - Local sidereal time
+- `sensor.nasa_sky_hub_sky_sidereal_time` - Local sidereal time
 - `sensor.nasa_api_rate_limit_remaining` - Remaining API requests
 - `sensor.nasa_api_rate_status` - API status (normal/warning/degraded)
 
 ### Binary Sensors
 
-- `binary_sensor.nasa_sky_hub_solar_flare_active` - Solar flare currently active
-- `binary_sensor.nasa_sky_hub_geomagnetic_storm_active` - Geomagnetic storm active
-- `binary_sensor.nasa_sky_hub_radiation_storm_active` - Radiation storm active
-- `binary_sensor.nasa_sky_hub_iss_overhead` - ISS currently overhead
-- `binary_sensor.nasa_sky_hub_visible_satellite_pass` - Visible satellite pass within 1 hour
-- `binary_sensor.nasa_sky_hub_astronomical_night` - Currently astronomical night
-- `binary_sensor.nasa_sky_hub_good_stargazing_conditions` - Good conditions for stargazing
+- `binary_sensor.nasa_sky_hub_space_weather_solar_flare_active` - Solar flare currently active
+- `binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active` - Geomagnetic storm active
+- `binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active` - Radiation storm active
+- `binary_sensor.nasa_sky_hub_satellites_iss_overhead` - ISS currently overhead
+- `binary_sensor.nasa_sky_hub_satellites_visible_satellite_pass` - Visible satellite pass within 1 hour
+- `binary_sensor.nasa_sky_hub_sky_astronomical_night` - Currently astronomical night
+- `binary_sensor.nasa_sky_hub_sky_good_stargazing_conditions` - Good conditions for stargazing
 
 ### Camera
 

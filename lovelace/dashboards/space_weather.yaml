@@ -36,7 +36,7 @@ cards:
 
       # Solar Flare Count
       - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_solar_flares_24h
+        entity: sensor.nasa_sky_hub_space_weather_flares_24h
         name: Solar Flares (24h)
         icon: mdi:solar-power
         tap_action:
@@ -45,11 +45,11 @@ cards:
       # Active Alerts Stack
       - type: conditional
         conditions:
-          - entity: binary_sensor.nasa_sky_hub_solar_flare_active
+          - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
             state: "on"
-          - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
+          - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
             state: "on"
-          - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
+          - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
             state: "on"
         card:
           type: vertical-stack
@@ -66,11 +66,11 @@ cards:
 
             - type: entities
               entities:
-                - entity: binary_sensor.nasa_sky_hub_solar_flare_active
+                - entity: binary_sensor.nasa_sky_hub_space_weather_solar_flare_active
                   name: Solar Flare Active
-                - entity: binary_sensor.nasa_sky_hub_geomagnetic_storm_active
+                - entity: binary_sensor.nasa_sky_hub_space_weather_geomagnetic_storm_active
                   name: Geomagnetic Storm Active
-                - entity: binary_sensor.nasa_sky_hub_radiation_storm_active
+                - entity: binary_sensor.nasa_sky_hub_space_weather_radiation_storm_active
                   name: Radiation Storm Active
 
       # Solar Flare Timeline Chart

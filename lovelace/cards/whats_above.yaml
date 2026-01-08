@@ -17,28 +17,28 @@ cards:
     columns: 2
     cards:
       - type: custom:mushroom-entity-card
-        entity: binary_sensor.nasa_sky_hub_iss_overhead
+        entity: binary_sensor.nasa_sky_hub_satellites_iss_overhead
         name: ISS
         icon: mdi:satellite-variant
         tap_action:
           action: more-info
 
       - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_brightest_object_overhead
+        entity: sensor.nasa_sky_hub_sky_brightest_object
         name: Brightest
         icon: mdi:star-circle
         tap_action:
           action: more-info
 
       - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_visible_constellations
+        entity: sensor.nasa_sky_hub_sky_visible_constellations
         name: Constellations
         icon: mdi:star
         tap_action:
           action: more-info
 
       - type: custom:mushroom-entity-card
-        entity: sensor.nasa_sky_hub_next_satellite_pass
+        entity: sensor.nasa_sky_hub_satellites_next_pass
         name: Next Pass
         icon: mdi:satellite
         tap_action:

@@ -209,12 +209,16 @@ async def async_setup_entry(
 
     # Rate limit sensors (always enabled)
     _LOGGER.debug("Creating rate limit sensors")
-    entities.extend(
+    rate_limit_entities = [
         RateLimitSensor(rate_limiter, desc)
         for desc in RATE_LIMIT_SENSORS
-    )
+    ]
+    entities.extend(rate_limit_entities)
+    # Add immediately to avoid timeout
+    async_add_entities(rate_limit_entities, update_before_add=False)
+    _LOGGER.error("KITTEN SAVE: Rate limit sensors added immediately")
 
-    # Space Weather sensors
+    # Space Weather sensors - CRITICAL: Add immediately after creation
     if MODULE_SPACE_WEATHER in enabled_modules:
         _LOGGER.error("KITTEN SAVE: Space Weather module is enabled, setting up sensors")
         _LOGGER.info("Setting up Space Weather sensors")
@@ -223,16 +227,20 @@ async def async_setup_entry(
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_SPACE_WEATHER],
         )
-        # CRITICAL: Create sensors FIRST, then refresh in background
+        # CRITICAL: Create sensors FIRST, add immediately, then refresh in background
         # This ensures entities are registered BEFORE timeout
-        # Create Space Weather sensors - CRITICAL for kittens!
+        space_weather_entities = []
         for desc in SPACE_WEATHER_SENSORS:
             sensor = SpaceWeatherSensor(coordinator, desc)
+            space_weather_entities.append(sensor)
             entities.append(sensor)
             _LOGGER.error("KITTEN SAVE: Created Space Weather sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         # Store coordinator for diagnostics
         data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
-        _LOGGER.error("KITTEN SAVE: Space Weather module setup complete, %s sensors created", len([e for e in entities if isinstance(e, SpaceWeatherSensor)]))
+        _LOGGER.error("KITTEN SAVE: Space Weather module setup complete, %s sensors created", len(space_weather_entities))
+        # Add immediately to avoid timeout
+        async_add_entities(space_weather_entities, update_before_add=False)
+        _LOGGER.error("KITTEN SAVE: Space Weather sensors added immediately")
         # NOW refresh in background (non-blocking)
         _LOGGER.debug("Space Weather coordinator created, will refresh in background")
         await coordinator.async_request_refresh()
@@ -396,28 +404,26 @@ async def async_setup_entry(
         else:
             _LOGGER.error("KITTEN SAVE: Sensor %s FOUND in entities list", target)
     
-    # CRITICAL: Call async_add_entities IMMEDIATELY after creating all entities
-    # This ensures entities are registered before any timeout occurs
-    # According to HA best practices, entities should be added as soon as they're created
-    _LOGGER.error("KITTEN SAVE: About to call async_add_entities with %s entities", len(entities))
+    # Add any remaining entities that weren't added incrementally
+    # (APOD, Satellite, Sky, Sentry, CAD sensors)
+    remaining_entities = [e for e in entities if e not in rate_limit_entities and 
+                         (not hasattr(e, '_attr_unique_id') or 
+                          not any(e._attr_unique_id == getattr(sw, '_attr_unique_id', '') for sw in space_weather_entities) and
+                          not any(e._attr_unique_id == getattr(nw, '_attr_unique_id', '') for nw in neows_entities))]
     
-    # Verify entities list is not empty
-    if not entities:
-        _LOGGER.error("KITTEN ALERT: No entities to add! This will kill a kitten!")
-    else:
-        # Add entities - use update_before_add=False to avoid blocking
-        # Entities will update in background via coordinators
-        async_add_entities(entities, update_before_add=False)
-        _LOGGER.error("KITTEN SAVE: async_add_entities completed successfully with %s entities", len(entities))
-        
-        # Log final verification of the 3 critical sensors
-        _LOGGER.error("KITTEN SAVE: Final verification - checking if entities were registered")
-        for target in ["space_weather_severity", "asteroids_neows_total_neos", "asteroids_neows_potentially_hazardous"]:
-            found = any(getattr(e, '_attr_unique_id', '') == target for e in entities)
-            if found:
-                _LOGGER.error("KITTEN SAVE: Entity %s was in the list sent to async_add_entities", target)
-            else:
-                _LOGGER.error("KITTEN ALERT: Entity %s was NOT in the list! This will kill a kitten!", target)
+    if remaining_entities:
+        _LOGGER.error("KITTEN SAVE: Adding %s remaining entities", len(remaining_entities))
+        async_add_entities(remaining_entities, update_before_add=False)
+        _LOGGER.error("KITTEN SAVE: Remaining entities added")
+    
+    # Final verification
+    _LOGGER.error("KITTEN SAVE: Final verification - all entities should be registered now")
+    for target in ["space_weather_severity", "asteroids_neows_total_neos", "asteroids_neows_potentially_hazardous"]:
+        found = any(getattr(e, '_attr_unique_id', '') == target for e in entities)
+        if found:
+            _LOGGER.error("KITTEN SAVE: Entity %s was created and should be registered", target)
+        else:
+            _LOGGER.error("KITTEN ALERT: Entity %s was NOT FOUND! This will kill a kitten!", target)
 
 
 class BaseSensor(CoordinatorEntity, SensorEntity):

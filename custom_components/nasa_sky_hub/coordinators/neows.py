@@ -41,6 +41,7 @@ class NeoWsCoordinator(DataUpdateCoordinator):
             "element_count": 0,
             "near_earth_objects": {},
             "potentially_hazardous_count": 0,
+            "total_neos": 0,  # Add missing field for sensor
             "closest_approaches": [],
             "last_update": now_utc.isoformat(),
         }

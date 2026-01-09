@@ -43,6 +43,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_key = entry.data.get("api_key", "DEMO_KEY")
     location = entry.data.get("location", {})
     enabled_modules = entry.data.get("enabled_modules", [])
+    # If no modules enabled, default to all modules (backward compatibility)
+    if not enabled_modules:
+        from .const import ALL_MODULES
+        enabled_modules = ALL_MODULES
+        _LOGGER.warning("No modules enabled in config, defaulting to all modules: %s", enabled_modules)
     profile = entry.data.get("profile", "balanced")
 
     _LOGGER.info("Configuration:")

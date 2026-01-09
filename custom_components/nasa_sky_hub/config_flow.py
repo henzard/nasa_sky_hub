@@ -97,7 +97,12 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.info("Config flow: Modules step started")
         if user_input is not None:
             _LOGGER.debug("Modules input received: %s", user_input)
-            self.data["enabled_modules"] = user_input.get("modules", [])
+            selected_modules = user_input.get("modules", [])
+            # If no modules selected, default to all modules
+            if not selected_modules:
+                selected_modules = ALL_MODULES
+                _LOGGER.info("No modules selected, defaulting to all modules: %s", selected_modules)
+            self.data["enabled_modules"] = selected_modules
             self.data["profile"] = user_input.get("profile", PROFILE_BALANCED)
             _LOGGER.info("Modules selected: %s, Profile: %s", self.data["enabled_modules"], self.data["profile"])
             return await self.async_step_location()

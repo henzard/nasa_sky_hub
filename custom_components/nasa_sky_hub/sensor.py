@@ -319,50 +319,38 @@ async def async_setup_entry(
         _LOGGER.info("Setting up Asteroid sensors (module is enabled)")
         
         # Sentry coordinator (impact risk)
+        # CRITICAL: Create entities FIRST, then refresh in background to avoid timeout
         sentry_coordinator = SentryCoordinator(
             hass,
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
-        try:
-            await sentry_coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("Sentry coordinator refreshed, data: %s", sentry_coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await sentry_coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh Sentry coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
-        entities.extend(
-            SentrySensor(sentry_coordinator, desc)
-            for desc in ASTEROID_SENTRY_SENSORS
-        )
+        # Create Sentry sensors IMMEDIATELY - don't wait for API call
+        for desc in ASTEROID_SENTRY_SENSORS:
+            sensor = SentrySensor(sentry_coordinator, desc)
+            entities.append(sensor)
+            _LOGGER.error("KITTEN SAVE: Created Sentry sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_sentry"] = sentry_coordinator
+        # NOW refresh in background (non-blocking)
+        _LOGGER.debug("Sentry coordinator created, will refresh in background")
+        await sentry_coordinator.async_request_refresh()
         
         # CAD coordinator (close approaches)
+        # CRITICAL: Create entities FIRST, then refresh in background to avoid timeout
         cad_coordinator = CADCoordinator(
             hass,
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
-        try:
-            await cad_coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("CAD coordinator refreshed, data: %s", cad_coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await cad_coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh CAD coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
-        entities.extend(
-            CADSensor(cad_coordinator, desc)
-            for desc in ASTEROID_CAD_SENSORS
-        )
+        # Create CAD sensors IMMEDIATELY - don't wait for API call
+        for desc in ASTEROID_CAD_SENSORS:
+            sensor = CADSensor(cad_coordinator, desc)
+            entities.append(sensor)
+            _LOGGER.error("KITTEN SAVE: Created CAD sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_cad"] = cad_coordinator
+        # NOW refresh in background (non-blocking)
+        _LOGGER.debug("CAD coordinator created, will refresh in background")
+        await cad_coordinator.async_request_refresh()
         
         # NeoWs feed coordinator (uses NASA NeoWs API)
         # CRITICAL: Create coordinator and sensors FIRST, then refresh in background

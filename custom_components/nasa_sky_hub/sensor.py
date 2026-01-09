@@ -213,6 +213,7 @@ async def async_setup_entry(
 
     # Space Weather sensors
     if MODULE_SPACE_WEATHER in enabled_modules:
+        _LOGGER.error("KITTEN SAVE: Space Weather module is enabled, setting up sensors")
         _LOGGER.info("Setting up Space Weather sensors")
         coordinator = SpaceWeatherCoordinator(
             hass,

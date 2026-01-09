@@ -230,12 +230,14 @@ async def async_setup_entry(
             else:
                 _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
             # Don't fail setup, coordinator will retry later
-        entities.extend(
-            SpaceWeatherSensor(coordinator, desc)
-            for desc in SPACE_WEATHER_SENSORS
-        )
+        # Create Space Weather sensors - CRITICAL for kittens!
+        for desc in SPACE_WEATHER_SENSORS:
+            sensor = SpaceWeatherSensor(coordinator, desc)
+            entities.append(sensor)
+            _LOGGER.error("KITTEN SAVE: Created Space Weather sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         # Store coordinator for diagnostics
         data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
+        _LOGGER.error("KITTEN SAVE: Space Weather module setup complete, %s sensors created", len([e for e in entities if isinstance(e, SpaceWeatherSensor)]))
 
     # APOD sensors
     if MODULE_APOD in enabled_modules:
@@ -379,20 +381,40 @@ async def async_setup_entry(
                 _LOGGER.debug("Setup timed out, requesting refresh instead")
                 await neows_coordinator.async_request_refresh()
             # Don't fail setup, coordinator will retry later
-        entities.extend(
-            NeoWsSensor(neows_coordinator, desc)
-            for desc in NEO_WS_SENSORS
-        )
+        # Create NeoWs sensors - CRITICAL for kittens!
+        for desc in NEO_WS_SENSORS:
+            sensor = NeoWsSensor(neows_coordinator, desc)
+            entities.append(sensor)
+            _LOGGER.error("KITTEN SAVE: Created NeoWs sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_neows"] = neows_coordinator
+        _LOGGER.error("KITTEN SAVE: NeoWs module setup complete, %s sensors created", len([e for e in entities if isinstance(e, NeoWsSensor)]))
 
-    _LOGGER.info("Created %s sensor entities", len(entities))
-    # Log entity details for diagnostics
+    _LOGGER.error("KITTEN SAVE: Total entities created: %s", len(entities))
+    # Log entity details for diagnostics - CRITICAL for kittens!
     for entity in entities:
         unique_id = getattr(entity, '_attr_unique_id', 'unknown')
         desc_key = getattr(entity.entity_description, 'key', 'unknown') if hasattr(entity, 'entity_description') else 'unknown'
         coordinator_name = getattr(entity.coordinator, 'name', 'unknown') if hasattr(entity, 'coordinator') else 'unknown'
-        _LOGGER.debug("Entity: unique_id=%s, key=%s, coordinator=%s", unique_id, desc_key, coordinator_name)
+        entity_type = type(entity).__name__
+        _LOGGER.error("KITTEN SAVE: Entity created - type=%s, unique_id=%s, key=%s, coordinator=%s, entity_id=sensor.nasa_sky_hub_%s", 
+                     entity_type, unique_id, desc_key, coordinator_name, unique_id)
+    
+    # CRITICAL: Verify the 3 specific sensors are in the list
+    target_sensors = [
+        "space_weather_severity",
+        "asteroids_neows_total_neos", 
+        "asteroids_neows_potentially_hazardous"
+    ]
+    for target in target_sensors:
+        found = any(getattr(e, '_attr_unique_id', '') == target for e in entities)
+        if not found:
+            _LOGGER.error("KITTEN ALERT: Sensor %s NOT FOUND in entities list! This will kill a kitten!", target)
+        else:
+            _LOGGER.error("KITTEN SAVE: Sensor %s FOUND in entities list", target)
+    
+    _LOGGER.error("KITTEN SAVE: About to call async_add_entities with %s entities", len(entities))
     async_add_entities(entities, update_before_add=False)
+    _LOGGER.error("KITTEN SAVE: async_add_entities completed")
 
 
 class BaseSensor(CoordinatorEntity, SensorEntity):

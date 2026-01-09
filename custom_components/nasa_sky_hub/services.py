@@ -29,21 +29,59 @@ async def async_refresh_all(hass: HomeAssistant, call: ServiceCall) -> None:
         return
 
     # Refresh all coordinators
-    # Note: In a real implementation, you'd store coordinators in hass.data
-    # and refresh them here
+    coordinators = data.get("coordinators", {})
+    if not coordinators:
+        _LOGGER.warning("No coordinators found for entry %s", entry_id)
+        return
+
     _LOGGER.info("Refreshing all coordinators for entry %s", entry_id)
+    for name, coordinator in coordinators.items():
+        if hasattr(coordinator, "async_request_refresh"):
+            await coordinator.async_request_refresh()
+            _LOGGER.debug("Refreshed coordinator: %s", name)
 
 
 async def async_refresh_module(hass: HomeAssistant, call: ServiceCall) -> None:
     """Refresh a specific module."""
     entry_id = call.data.get("entry_id")
-    module = call.data.get("module")
+    if not entry_id:
+        # Use first entry if not specified
+        entries = hass.config_entries.async_entries(DOMAIN)
+        if not entries:
+            _LOGGER.error("No NASA Sky Hub config entries found")
+            return
+        entry_id = entries[0].entry_id
 
+    module = call.data.get("module")
     if not module:
         _LOGGER.error("Module name required")
         return
 
+    data = hass.data[DOMAIN].get(entry_id)
+    if not data:
+        _LOGGER.error("Config entry not found: %s", entry_id)
+        return
+
+    coordinators = data.get("coordinators", {})
+    
+    # Try to find coordinator by module name
+    coordinator = coordinators.get(module)
+    if coordinator is None:
+        # Some modules have multiple coordinators (e.g., asteroids has sentry, cad, neows)
+        # Try to find any coordinator that starts with the module name
+        for name, coord in coordinators.items():
+            if name.startswith(module):
+                coordinator = coord
+                break
+    
+    if coordinator is None:
+        _LOGGER.error("Coordinator not found for module: %s", module)
+        return
+
     _LOGGER.info("Refreshing module %s for entry %s", module, entry_id)
+    if hasattr(coordinator, "async_request_refresh"):
+        await coordinator.async_request_refresh()
+        _LOGGER.debug("Refreshed coordinator: %s", module)
 
 
 async def async_prefetch_apod_range(hass: HomeAssistant, call: ServiceCall) -> None:

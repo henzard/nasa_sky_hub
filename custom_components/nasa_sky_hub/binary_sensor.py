@@ -115,6 +115,11 @@ async def async_setup_entry(
         if coordinator is None:
             _LOGGER.warning("Sky coordinator not found, skipping binary sensors")
         else:
+            _LOGGER.debug(
+                "Sky coordinator found: has_data=%s, last_update=%s",
+                coordinator.data is not None,
+                coordinator.data.get("last_update") if coordinator.data else None,
+            )
             entities.extend(
                 SkyBinarySensor(coordinator, desc)
                 for desc in SKY_BINARY_SENSORS

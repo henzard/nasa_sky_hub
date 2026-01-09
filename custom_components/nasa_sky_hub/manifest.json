@@ -13,6 +13,6 @@
     "pyephem>=4.1",
     "skyfield>=1.42"
   ],
-        "version": "1.2.24",
+        "version": "1.2.25",
   "icon": "mdi:rocket-launch"
 }

@@ -180,6 +180,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors from config entry."""
+    _LOGGER.error("=" * 80)
+    _LOGGER.error("KITTEN SAVE: Starting sensor setup for entry %s", entry.entry_id)
+    _LOGGER.error("=" * 80)
     _LOGGER.info("Setting up sensors for entry %s", entry.entry_id)
     data = hass.data[DOMAIN][entry.entry_id]
     api_client = data["api_client"]

@@ -66,7 +66,8 @@ class SkyCalculator:
         lst = self.observer.lst_hours_at(t)
         hours = int(lst)
         minutes = int((lst - hours) * 60)
-        return f"{hours:02d}:{minutes:02d}"
+        seconds = int(((lst - hours) * 60 - minutes) * 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     def is_astronomical_night(self, time: datetime) -> bool:
         """Check if it's astronomical night (sun 18° below horizon)."""

@@ -175,12 +175,17 @@ class SatelliteTracker:
                     # Found rise, find set
                     rise_time = current
                     set_time = current
-                    while alt.degrees > 0 and set_time.utc_datetime() < t1.utc_datetime():
+                    while set_time.utc_datetime() < t1.utc_datetime():
+                        # Check altitude before incrementing to avoid 1-minute offset
+                        topocentric = difference.at(set_time)
+                        alt, az, _ = topocentric.altaz()
+                        if alt.degrees <= 0:
+                            # Satellite has set, use current set_time (not incremented)
+                            break
+                        # Increment only if still above horizon
                         set_time = self.ts.from_datetime(
                             set_time.utc_datetime() + timedelta(minutes=1)
                         )
-                        topocentric = difference.at(set_time)
-                        alt, az, _ = topocentric.altaz()
 
                     max_alt = 0
                     max_alt_time = rise_time

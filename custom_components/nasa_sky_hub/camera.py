@@ -22,29 +22,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up camera from config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    api_client = data["api_client"]
     enabled_modules = data.get("enabled_modules", [])
 
     if MODULE_APOD not in enabled_modules:
         return
 
-    from .coordinators.apod import APODCoordinator
-
-    coordinator = APODCoordinator(
-        hass,
-        api_client,
-        update_interval=86400,
-    )
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except Exception as err:
-        # If setup timed out, just request a refresh instead
-        if "ConfigEntryState" in str(err):
-            _LOGGER.debug("Setup timed out, requesting refresh instead")
-            await coordinator.async_request_refresh()
-        else:
-            _LOGGER.warning("Failed to refresh APOD coordinator on setup: %s", err)
-        # Don't fail setup, coordinator will retry later
+    # Reuse coordinator from sensor.py if it exists
+    coordinator = data["coordinators"].get(MODULE_APOD)
+    if coordinator is None:
+        _LOGGER.warning("APOD coordinator not found, camera may not work")
+        return
 
     _LOGGER.info("Created APOD camera entity")
     async_add_entities([APODCamera(coordinator)], update_before_add=False)

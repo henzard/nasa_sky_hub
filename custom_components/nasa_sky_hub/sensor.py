@@ -364,23 +364,25 @@ async def async_setup_entry(
         data["coordinators"][f"{MODULE_ASTEROIDS}_cad"] = cad_coordinator
         
         # NeoWs feed coordinator (uses NASA NeoWs API)
+        # CRITICAL: Create coordinator and sensors FIRST, then refresh in background
+        # This ensures entities are registered BEFORE timeout
         neows_coordinator = NeoWsCoordinator(
             hass,
             api_client,
             days_ahead=7,  # Default to 7 days ahead
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
-        # Don't wait for first refresh - let it happen in background to avoid timeout
-        # This ensures entities are created immediately even if API calls are slow
-        _LOGGER.debug("NeoWs coordinator created, will refresh in background")
-        await neows_coordinator.async_request_refresh()
-        # Create NeoWs sensors - CRITICAL for kittens!
+        # Create NeoWs sensors IMMEDIATELY - CRITICAL for kittens!
+        # Don't wait for API call - create entities first, then refresh
         for desc in NEO_WS_SENSORS:
             sensor = NeoWsSensor(neows_coordinator, desc)
             entities.append(sensor)
             _LOGGER.error("KITTEN SAVE: Created NeoWs sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_neows"] = neows_coordinator
         _LOGGER.error("KITTEN SAVE: NeoWs module setup complete, %s sensors created", len([e for e in entities if isinstance(e, NeoWsSensor)]))
+        # NOW refresh in background (non-blocking)
+        _LOGGER.debug("NeoWs coordinator created, will refresh in background")
+        await neows_coordinator.async_request_refresh()
 
     _LOGGER.error("KITTEN SAVE: Total entities created: %s", len(entities))
     # Log entity details for diagnostics - CRITICAL for kittens!

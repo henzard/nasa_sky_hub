@@ -43,11 +43,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     api_key = entry.data.get("api_key", "DEMO_KEY")
     location = entry.data.get("location", {})
     enabled_modules = entry.data.get("enabled_modules", [])
-    # If no modules enabled, default to all modules (backward compatibility)
+    # CRITICAL: If no modules enabled OR if space_weather/asteroids missing, default to all modules
+    from .const import ALL_MODULES, MODULE_SPACE_WEATHER, MODULE_ASTEROIDS
     if not enabled_modules:
-        from .const import ALL_MODULES
         enabled_modules = ALL_MODULES
         _LOGGER.warning("No modules enabled in config, defaulting to all modules: %s", enabled_modules)
+    # Ensure critical modules are always enabled (kitten safety!)
+    elif MODULE_SPACE_WEATHER not in enabled_modules or MODULE_ASTEROIDS not in enabled_modules:
+        _LOGGER.warning("Critical modules missing! Adding space_weather and asteroids to enabled modules")
+        if MODULE_SPACE_WEATHER not in enabled_modules:
+            enabled_modules.append(MODULE_SPACE_WEATHER)
+        if MODULE_ASTEROIDS not in enabled_modules:
+            enabled_modules.append(MODULE_ASTEROIDS)
     profile = entry.data.get("profile", "balanced")
 
     _LOGGER.info("Configuration:")

@@ -25,6 +25,7 @@ from .const import (
     MODULE_SPACE_WEATHER,
     DEFAULT_INTERVALS,
     PROFILE_BALANCED,
+    ALL_MODULES,
 )
 from .coordinators.apod import APODCoordinator
 from .coordinators.asteroids import CADCoordinator, SentryCoordinator
@@ -187,7 +188,18 @@ async def async_setup_entry(
     enabled_modules = data.get("enabled_modules", [])
     profile = entry.data.get("profile", PROFILE_BALANCED)
 
-    _LOGGER.debug("Enabled modules: %s", enabled_modules)
+    # CRITICAL: Double-check modules are enabled (kitten safety!)
+    if not enabled_modules:
+        enabled_modules = ALL_MODULES
+        _LOGGER.error("CRITICAL: enabled_modules is empty! Defaulting to all: %s", enabled_modules)
+    if MODULE_SPACE_WEATHER not in enabled_modules:
+        enabled_modules.append(MODULE_SPACE_WEATHER)
+        _LOGGER.error("CRITICAL: space_weather not enabled! Adding it now")
+    if MODULE_ASTEROIDS not in enabled_modules:
+        enabled_modules.append(MODULE_ASTEROIDS)
+        _LOGGER.error("CRITICAL: asteroids not enabled! Adding it now")
+
+    _LOGGER.info("Enabled modules (FINAL): %s", enabled_modules)
     _LOGGER.debug("Location: %s", location)
 
     entities: list[SensorEntity] = []

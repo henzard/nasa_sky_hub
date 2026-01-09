@@ -238,12 +238,10 @@ async def async_setup_entry(
         # Store coordinator for diagnostics
         data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
         _LOGGER.error("KITTEN SAVE: Space Weather module setup complete, %s sensors created", len(space_weather_entities))
-        # Add immediately to avoid timeout
+        # Add immediately to avoid timeout - NO API CALLS during setup!
         async_add_entities(space_weather_entities, update_before_add=False)
         _LOGGER.error("KITTEN SAVE: Space Weather sensors added immediately")
-        # NOW refresh in background (non-blocking)
-        _LOGGER.debug("Space Weather coordinator created, will refresh in background")
-        await coordinator.async_request_refresh()
+        # Coordinator will refresh automatically on its update_interval - no API call during setup!
 
     # APOD sensors
     if MODULE_APOD in enabled_modules:
@@ -253,17 +251,8 @@ async def async_setup_entry(
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_APOD],
         )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("APOD coordinator refreshed, data: %s", coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh APOD coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
+        # Create entities immediately - NO API CALLS during setup!
+        # Coordinator will refresh automatically on its update_interval
         entities.extend(
             APODSensor(coordinator, desc)
             for desc in APOD_SENSORS
@@ -304,17 +293,8 @@ async def async_setup_entry(
             location,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_SKY],
         )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("Sky coordinator refreshed, data: %s", coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
+        # Create entities immediately - NO API CALLS during setup!
+        # Coordinator will refresh automatically on its update_interval
         entities.extend(
             SkySensor(coordinator, desc)
             for desc in SKY_SENSORS
@@ -327,38 +307,34 @@ async def async_setup_entry(
         _LOGGER.info("Setting up Asteroid sensors (module is enabled)")
         
         # Sentry coordinator (impact risk)
-        # CRITICAL: Create entities FIRST, then refresh in background to avoid timeout
+        # CRITICAL: Create entities FIRST - NO API CALLS during setup!
         sentry_coordinator = SentryCoordinator(
             hass,
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
-        # Create Sentry sensors IMMEDIATELY - don't wait for API call
+        # Create Sentry sensors IMMEDIATELY - coordinator will refresh automatically
         for desc in ASTEROID_SENTRY_SENSORS:
             sensor = SentrySensor(sentry_coordinator, desc)
             entities.append(sensor)
             _LOGGER.error("KITTEN SAVE: Created Sentry sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_sentry"] = sentry_coordinator
-        # NOW refresh in background (non-blocking)
-        _LOGGER.debug("Sentry coordinator created, will refresh in background")
-        await sentry_coordinator.async_request_refresh()
+        # Coordinator will refresh automatically on its update_interval - no API call during setup!
         
         # CAD coordinator (close approaches)
-        # CRITICAL: Create entities FIRST, then refresh in background to avoid timeout
+        # CRITICAL: Create entities FIRST - NO API CALLS during setup!
         cad_coordinator = CADCoordinator(
             hass,
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
-        # Create CAD sensors IMMEDIATELY - don't wait for API call
+        # Create CAD sensors IMMEDIATELY - coordinator will refresh automatically
         for desc in ASTEROID_CAD_SENSORS:
             sensor = CADSensor(cad_coordinator, desc)
             entities.append(sensor)
             _LOGGER.error("KITTEN SAVE: Created CAD sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_cad"] = cad_coordinator
-        # NOW refresh in background (non-blocking)
-        _LOGGER.debug("CAD coordinator created, will refresh in background")
-        await cad_coordinator.async_request_refresh()
+        # Coordinator will refresh automatically on its update_interval - no API call during setup!
         
         # NeoWs feed coordinator (uses NASA NeoWs API)
         # CRITICAL: Create coordinator and sensors FIRST, then refresh in background
@@ -406,22 +382,22 @@ async def async_setup_entry(
     
     # Add any remaining entities that weren't added incrementally
     # (APOD, Satellite, Sky, Sentry, CAD sensors)
-    remaining_entities = [e for e in entities if e not in rate_limit_entities and 
-                         (not hasattr(e, '_attr_unique_id') or 
-                          not any(e._attr_unique_id == getattr(sw, '_attr_unique_id', '') for sw in space_weather_entities) and
-                          not any(e._attr_unique_id == getattr(nw, '_attr_unique_id', '') for nw in neows_entities))]
+    # Collect all entities that haven't been added yet
+    added_entities = set(rate_limit_entities + space_weather_entities + neows_entities)
+    remaining_entities = [e for e in entities if e not in added_entities]
     
     if remaining_entities:
-        _LOGGER.error("KITTEN SAVE: Adding %s remaining entities", len(remaining_entities))
+        _LOGGER.error("KITTEN SAVE: Adding %s remaining entities immediately", len(remaining_entities))
         async_add_entities(remaining_entities, update_before_add=False)
-        _LOGGER.error("KITTEN SAVE: Remaining entities added")
+        _LOGGER.error("KITTEN SAVE: Remaining entities added - NO API CALLS during setup!")
     
     # Final verification
-    _LOGGER.error("KITTEN SAVE: Final verification - all entities should be registered now")
+    _LOGGER.error("KITTEN SAVE: Final verification - all entities registered with default values")
+    _LOGGER.error("KITTEN SAVE: Coordinators will fetch data automatically on their update intervals")
     for target in ["space_weather_severity", "asteroids_neows_total_neos", "asteroids_neows_potentially_hazardous"]:
         found = any(getattr(e, '_attr_unique_id', '') == target for e in entities)
         if found:
-            _LOGGER.error("KITTEN SAVE: Entity %s was created and should be registered", target)
+            _LOGGER.error("KITTEN SAVE: Entity %s was created and registered with default value", target)
         else:
             _LOGGER.error("KITTEN ALERT: Entity %s was NOT FOUND! This will kill a kitten!", target)
 

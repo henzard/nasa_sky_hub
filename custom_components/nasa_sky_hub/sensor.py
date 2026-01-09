@@ -223,10 +223,8 @@ async def async_setup_entry(
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_SPACE_WEATHER],
         )
-        # Don't wait for first refresh - let it happen in background to avoid timeout
-        # This ensures entities are created immediately even if API calls are slow
-        _LOGGER.debug("Space Weather coordinator created, will refresh in background")
-        await coordinator.async_request_refresh()
+        # CRITICAL: Create sensors FIRST, then refresh in background
+        # This ensures entities are registered BEFORE timeout
         # Create Space Weather sensors - CRITICAL for kittens!
         for desc in SPACE_WEATHER_SENSORS:
             sensor = SpaceWeatherSensor(coordinator, desc)
@@ -235,6 +233,9 @@ async def async_setup_entry(
         # Store coordinator for diagnostics
         data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
         _LOGGER.error("KITTEN SAVE: Space Weather module setup complete, %s sensors created", len([e for e in entities if isinstance(e, SpaceWeatherSensor)]))
+        # NOW refresh in background (non-blocking)
+        _LOGGER.debug("Space Weather coordinator created, will refresh in background")
+        await coordinator.async_request_refresh()
 
     # APOD sensors
     if MODULE_APOD in enabled_modules:

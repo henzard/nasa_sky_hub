@@ -35,6 +35,15 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch space weather data."""
         _LOGGER.info("Fetching space weather data")
+        # Default data structure (always return this structure)
+        default_data = {
+            "severity": SEVERITY_QUIET,
+            "flares_24h": 0,
+            "flares": [],
+            "cmes": [],
+            "storms": [],
+            "last_update": datetime.now(timezone.utc).isoformat(),
+        }
         try:
             end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=3)
@@ -94,24 +103,10 @@ class SpaceWeatherCoordinator(DataUpdateCoordinator):
         except NASAApiError as err:
             _LOGGER.error("NASA API error fetching space weather: %s", err)
             # Return default data instead of raising to allow retries
-            return {
-                "severity": SEVERITY_QUIET,
-                "flares_24h": 0,
-                "flares": [],
-                "cmes": [],
-                "storms": [],
-                "last_update": datetime.now(timezone.utc).isoformat(),
-                "error": str(err),
-            }
+            default_data["error"] = str(err)
+            return default_data
         except Exception as err:
             _LOGGER.exception("Unexpected error fetching space weather data")
             # Return default data instead of raising to allow retries
-            return {
-                "severity": SEVERITY_QUIET,
-                "flares_24h": 0,
-                "flares": [],
-                "cmes": [],
-                "storms": [],
-                "last_update": datetime.now(timezone.utc).isoformat(),
-                "error": str(err),
-            }
+            default_data["error"] = str(err)
+            return default_data

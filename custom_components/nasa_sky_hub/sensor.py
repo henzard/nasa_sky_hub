@@ -410,11 +410,17 @@ class SpaceWeatherSensor(BaseSensor):
         """Return sensor value."""
         data = self.coordinator.data
         if data is None:
+            # Return default values if coordinator hasn't updated yet
+            key = self.entity_description.key
+            if key == "severity":
+                return "quiet"  # Default severity
+            elif key == "flares_24h":
+                return 0
             return None
         key = self.entity_description.key
 
         if key == "severity":
-            return data.get("severity", "unknown")
+            return data.get("severity", "quiet")
         elif key == "flares_24h":
             return data.get("flares_24h", 0)
         return None
@@ -686,6 +692,14 @@ class NeoWsSensor(BaseSensor):
         """Return sensor value."""
         data = self.coordinator.data
         if data is None:
+            # Return default values if coordinator hasn't updated yet
+            key = self.entity_description.key
+            if key == "total_neos":
+                return 0
+            elif key == "potentially_hazardous":
+                return 0
+            elif key == "closest_approach":
+                return None
             return None
         key = self.entity_description.key
 

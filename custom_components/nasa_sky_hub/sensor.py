@@ -219,17 +219,10 @@ async def async_setup_entry(
             api_client,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_SPACE_WEATHER],
         )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("Space Weather coordinator refreshed, data: %s", coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
+        # Don't wait for first refresh - let it happen in background to avoid timeout
+        # This ensures entities are created immediately even if API calls are slow
+        _LOGGER.debug("Space Weather coordinator created, will refresh in background")
+        await coordinator.async_request_refresh()
         # Create Space Weather sensors - CRITICAL for kittens!
         for desc in SPACE_WEATHER_SENSORS:
             sensor = SpaceWeatherSensor(coordinator, desc)

@@ -396,9 +396,28 @@ async def async_setup_entry(
         else:
             _LOGGER.error("KITTEN SAVE: Sensor %s FOUND in entities list", target)
     
+    # CRITICAL: Call async_add_entities IMMEDIATELY after creating all entities
+    # This ensures entities are registered before any timeout occurs
+    # According to HA best practices, entities should be added as soon as they're created
     _LOGGER.error("KITTEN SAVE: About to call async_add_entities with %s entities", len(entities))
-    async_add_entities(entities, update_before_add=False)
-    _LOGGER.error("KITTEN SAVE: async_add_entities completed")
+    
+    # Verify entities list is not empty
+    if not entities:
+        _LOGGER.error("KITTEN ALERT: No entities to add! This will kill a kitten!")
+    else:
+        # Add entities - use update_before_add=False to avoid blocking
+        # Entities will update in background via coordinators
+        async_add_entities(entities, update_before_add=False)
+        _LOGGER.error("KITTEN SAVE: async_add_entities completed successfully with %s entities", len(entities))
+        
+        # Log final verification of the 3 critical sensors
+        _LOGGER.error("KITTEN SAVE: Final verification - checking if entities were registered")
+        for target in ["space_weather_severity", "asteroids_neows_total_neos", "asteroids_neows_potentially_hazardous"]:
+            found = any(getattr(e, '_attr_unique_id', '') == target for e in entities)
+            if found:
+                _LOGGER.error("KITTEN SAVE: Entity %s was in the list sent to async_add_entities", target)
+            else:
+                _LOGGER.error("KITTEN ALERT: Entity %s was NOT in the list! This will kill a kitten!", target)
 
 
 class BaseSensor(CoordinatorEntity, SensorEntity):

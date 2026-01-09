@@ -268,17 +268,8 @@ async def async_setup_entry(
             location,
             update_interval=DEFAULT_INTERVALS[profile][MODULE_SATELLITES],
         )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-            _LOGGER.debug("Satellite coordinator refreshed, data: %s", coordinator.data is not None)
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
+        # Create entities immediately - NO API CALLS during setup!
+        # Coordinator will refresh automatically on its update_interval
         entities.extend(
             SatelliteSensor(coordinator, desc)
             for desc in SATELLITE_SENSORS
@@ -337,8 +328,7 @@ async def async_setup_entry(
         # Coordinator will refresh automatically on its update_interval - no API call during setup!
         
         # NeoWs feed coordinator (uses NASA NeoWs API)
-        # CRITICAL: Create coordinator and sensors FIRST, then refresh in background
-        # This ensures entities are registered BEFORE timeout
+        # CRITICAL: Create coordinator and sensors FIRST - NO API CALLS during setup!
         neows_coordinator = NeoWsCoordinator(
             hass,
             api_client,
@@ -346,16 +336,19 @@ async def async_setup_entry(
             update_interval=DEFAULT_INTERVALS[profile][MODULE_ASTEROIDS],
         )
         # Create NeoWs sensors IMMEDIATELY - CRITICAL for kittens!
-        # Don't wait for API call - create entities first, then refresh
+        # Coordinator will refresh automatically on its update_interval
+        neows_entities = []
         for desc in NEO_WS_SENSORS:
             sensor = NeoWsSensor(neows_coordinator, desc)
+            neows_entities.append(sensor)
             entities.append(sensor)
             _LOGGER.error("KITTEN SAVE: Created NeoWs sensor: unique_id=%s, entity_id will be sensor.nasa_sky_hub_%s", sensor._attr_unique_id, sensor._attr_unique_id)
         data["coordinators"][f"{MODULE_ASTEROIDS}_neows"] = neows_coordinator
-        _LOGGER.error("KITTEN SAVE: NeoWs module setup complete, %s sensors created", len([e for e in entities if isinstance(e, NeoWsSensor)]))
-        # NOW refresh in background (non-blocking)
-        _LOGGER.debug("NeoWs coordinator created, will refresh in background")
-        await neows_coordinator.async_request_refresh()
+        _LOGGER.error("KITTEN SAVE: NeoWs module setup complete, %s sensors created", len(neows_entities))
+        # Add immediately to avoid timeout - CRITICAL FOR KITTENS!
+        async_add_entities(neows_entities, update_before_add=False)
+        _LOGGER.error("KITTEN SAVE: NeoWs sensors added immediately - KITTENS ARE SAFE!")
+        # Coordinator will refresh automatically on its update_interval - no API call during setup!
 
     _LOGGER.error("KITTEN SAVE: Total entities created: %s", len(entities))
     # Log entity details for diagnostics - CRITICAL for kittens!

@@ -54,19 +54,20 @@ class RateLimiter:
                     # Reset expired, assume we have requests again
                     self.remaining = self.limit
 
-            # Check degraded mode threshold
-            if self.remaining < RATE_LIMIT_DEGRADED_THRESHOLD:
-                _LOGGER.warning(
-                    "Rate limit degraded: %s remaining (threshold: %s)",
-                    self.remaining,
-                    RATE_LIMIT_DEGRADED_THRESHOLD,
-                )
-            elif self.remaining < RATE_LIMIT_WARNING_THRESHOLD:
-                _LOGGER.info(
-                    "Rate limit warning: %s remaining (threshold: %s)",
-                    self.remaining,
-                    RATE_LIMIT_WARNING_THRESHOLD,
-                )
+            # Check thresholds (check higher threshold first)
+            if self.remaining < RATE_LIMIT_WARNING_THRESHOLD:
+                if self.remaining < RATE_LIMIT_DEGRADED_THRESHOLD:
+                    _LOGGER.warning(
+                        "Rate limit degraded: %s remaining (threshold: %s)",
+                        self.remaining,
+                        RATE_LIMIT_DEGRADED_THRESHOLD,
+                    )
+                else:
+                    _LOGGER.info(
+                        "Rate limit warning: %s remaining (threshold: %s)",
+                        self.remaining,
+                        RATE_LIMIT_WARNING_THRESHOLD,
+                    )
 
             return True
 

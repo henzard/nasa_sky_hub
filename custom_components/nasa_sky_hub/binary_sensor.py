@@ -86,76 +86,39 @@ async def async_setup_entry(
 
     # Space Weather binary sensors
     if MODULE_SPACE_WEATHER in enabled_modules:
-        from .coordinators.space_weather import SpaceWeatherCoordinator
-        coordinator = SpaceWeatherCoordinator(
-            hass,
-            api_client,
-            update_interval=1800,
-        )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh space weather coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
-        entities.extend(
-            SpaceWeatherBinarySensor(coordinator, desc)
-            for desc in SPACE_WEATHER_BINARY_SENSORS
-        )
-        data["coordinators"][MODULE_SPACE_WEATHER] = coordinator
+        # Reuse coordinator from sensor.py if it exists
+        coordinator = data["coordinators"].get(MODULE_SPACE_WEATHER)
+        if coordinator is None:
+            _LOGGER.warning("Space Weather coordinator not found, skipping binary sensors")
+        else:
+            entities.extend(
+                SpaceWeatherBinarySensor(coordinator, desc)
+                for desc in SPACE_WEATHER_BINARY_SENSORS
+            )
 
     # Satellite binary sensors
     if MODULE_SATELLITES in enabled_modules:
-        from .coordinators.satellites import SatelliteCoordinator
-        coordinator = SatelliteCoordinator(
-            hass,
-            api_client,
-            location,
-            update_interval=180,
-        )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh satellite coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
-        entities.extend(
-            SatelliteBinarySensor(coordinator, desc)
-            for desc in SATELLITE_BINARY_SENSORS
-        )
-        data["coordinators"][MODULE_SATELLITES] = coordinator
+        # Reuse coordinator from sensor.py if it exists
+        coordinator = data["coordinators"].get(MODULE_SATELLITES)
+        if coordinator is None:
+            _LOGGER.warning("Satellite coordinator not found, skipping binary sensors")
+        else:
+            entities.extend(
+                SatelliteBinarySensor(coordinator, desc)
+                for desc in SATELLITE_BINARY_SENSORS
+            )
 
     # Sky binary sensors
     if MODULE_SKY in enabled_modules:
-        from .coordinators.sky import SkyCoordinator
-        coordinator = SkyCoordinator(
-            hass,
-            location,
-            update_interval=300,
-        )
-        try:
-            await coordinator.async_config_entry_first_refresh()
-        except Exception as err:
-            # If setup timed out, just request a refresh instead
-            if "ConfigEntryState" in str(err):
-                _LOGGER.debug("Setup timed out, requesting refresh instead")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("Failed to refresh sky coordinator on setup: %s", err)
-            # Don't fail setup, coordinator will retry later
-        entities.extend(
-            SkyBinarySensor(coordinator, desc)
-            for desc in SKY_BINARY_SENSORS
-        )
-        data["coordinators"][MODULE_SKY] = coordinator
+        # Reuse coordinator from sensor.py if it exists
+        coordinator = data["coordinators"].get(MODULE_SKY)
+        if coordinator is None:
+            _LOGGER.warning("Sky coordinator not found, skipping binary sensors")
+        else:
+            entities.extend(
+                SkyBinarySensor(coordinator, desc)
+                for desc in SKY_BINARY_SENSORS
+            )
 
     _LOGGER.info("Created %s binary sensor entities", len(entities))
     # Log entity details for diagnostics

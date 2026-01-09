@@ -176,14 +176,6 @@ class NASASkyHubConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> NASASkyHubOptionsFlowHandler:
-        """Get the options flow handler."""
-        return NASASkyHubOptionsFlowHandler(config_entry)
-
 
 class NASASkyHubOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for NASA Sky Hub."""

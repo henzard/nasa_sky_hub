@@ -753,9 +753,9 @@ class RateLimitSensor(SensorEntity):
             return status.get("remaining", 0)
         elif key == "rate_status":
             remaining = status.get("remaining", 0)
-            if remaining < 50:
-                return "degraded"
-            elif remaining < 100:
+            if remaining < 100:
+                if remaining < 50:
+                    return "degraded"
                 return "warning"
             return "normal"
         return None
